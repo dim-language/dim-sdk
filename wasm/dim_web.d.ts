@@ -1,18 +1,34 @@
 /* tslint:disable */
 /* eslint-disable */
 
+/**
+ * One compiled model with its full layout. The map's state ([`MapView`]) goes in and out as JSON, so the
+ * page keeps it and can render the first frame on the server with the same calls.
+ */
 export class WebMap {
     free(): void;
     [Symbol.dispose](): void;
+    /**
+     * Open and close elements for `scale`: `{ changed, state }`.
+     */
+    atZoom(state: string, scale: number): string;
     boxOf(id: string): string;
-    expandedForLevel(level: number): string;
-    expanded(scale: number, previous: string): string;
-    hasChildren(id: string): boolean;
+    /**
+     * Carry a state made for another model over to this one.
+     */
+    carry(state: string): string;
     constructor(model: string);
     openingScale(id: string): number;
-    project(expanded: string, flow: string | null | undefined, fixed: boolean): string;
-    toggle(id: string, expanded: string): string;
-    visible(id: string, expanded: string): string;
+    pin(state: string, route: number): string;
+    selectFlow(state: string, id: string): string;
+    /**
+     * Everything drawn for `state`, with its text in `language` ("id" or "en").
+     */
+    view(state: string, language: string): string;
+    /**
+     * The element that shows `id` in `state`: itself, or its closed ancestor.
+     */
+    visible(state: string, id: string): string;
 }
 
 export function compileProject(entry: string, files: string): string;
@@ -26,14 +42,14 @@ export interface InitOutput {
     readonly __wbg_webmap_free: (a: number, b: number) => void;
     readonly compileProject: (a: number, b: number, c: number, d: number) => [number, number, number, number];
     readonly formatFile: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+    readonly webmap_atZoom: (a: number, b: number, c: number, d: number) => [number, number, number, number];
     readonly webmap_boxOf: (a: number, b: number, c: number) => [number, number, number, number];
-    readonly webmap_expanded: (a: number, b: number, c: number, d: number) => [number, number, number, number];
-    readonly webmap_expandedForLevel: (a: number, b: number) => [number, number, number, number];
-    readonly webmap_hasChildren: (a: number, b: number, c: number) => number;
+    readonly webmap_carry: (a: number, b: number, c: number) => [number, number, number, number];
     readonly webmap_new: (a: number, b: number) => [number, number, number];
     readonly webmap_openingScale: (a: number, b: number, c: number) => number;
-    readonly webmap_project: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
-    readonly webmap_toggle: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
+    readonly webmap_pin: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+    readonly webmap_selectFlow: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
+    readonly webmap_view: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
     readonly webmap_visible: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
     readonly __wbindgen_externrefs: WebAssembly.Table;
     readonly __wbindgen_malloc: (a: number, b: number) => number;

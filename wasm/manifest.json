@@ -1,11 +1,11 @@
 {
-  "version": "0.1.0",
+  "version": "0.2.0",
   "sha256": {
     "THIRD_PARTY_NOTICES.txt": "5c43b48dcc2c2aadb21ed204f0a1f786aba60e583087ba218638433df9bf91ea",
-    "dim_web.d.ts": "f8ef636ed63ccfc8375ac9bb71fb6e47e707a70ef4d665b08f8c73442a9359a6",
-    "dim_web.js": "8acffcce704b68c803974dbcecbb911d07eb36a642065b6764326505b184e4fa",
-    "dim_web_bg.wasm": "c579cc52d58e8a2b61d3d3a1584246da53017b3480f708eefe29d9dc8e93fd2c",
-    "dim_web_bg.wasm.d.ts": "a7529fdaaf14fe5c7cc7b2c6b758d5b933b420ac67f1361e0a70c5a1b0a44737",
+    "dim_web.d.ts": "52f8701bf67cd8139124499f69157dbce9fe5a3935a7fe15df65f4b7ab184486",
+    "dim_web.js": "36ce739643a16730c51752ba184ff9c2f56ec6058504bec473bc05839467bb99",
+    "dim_web_bg.wasm": "671b0d35d9a5e6218972f9e0a622c528f82e4ede17240ea2f901b9c8969884d6",
+    "dim_web_bg.wasm.d.ts": "a13c427584cc078422725e6f4144dadf6682b7c0d9732f667e1514f0d39eff9c",
     "vocab.json": "f756cbf47094b85fd2f5ce8ffaa931c2ba121331b5d4a0b8d03077aa4aad62d8"
   }
 }

@@ -1,6 +1,6 @@
 /*
- * Isi peta zoom: panggung, kotak, panah, daftar panah, daftar alur, dan skala level.
- * Arah visual: apps/docs/DESIGN.md (peta cetak). Tata letak di sekitar peta milik pemakai.
+ * Komponen peta zoom (`@dim/sdk/map`): panggung, kotak, panah, daftar relasi, langkah alur, panel samping
+ * dengan tab, dan kontrol mengapung. Arah visual: apps/docs/DESIGN.md (peta cetak).
  *
  * Token yang wajib diisi pemakai di elemen `.zm-map` atau leluhurnya:
  *   --zm-ink            teks paling kuat, garis skala dan kotak yang bisa dibuka
@@ -15,69 +15,12 @@
  *   --zm-place-bg, --zm-place-border, --zm-region-border
  *   --zm-font-mono, --zm-text-xs, --zm-text-sm
  *
- * Ukuran `.zm-stage` bawaan: piksel tetap (--zm-w x --zm-h). Pemakai boleh menimpa `width`.
+ * Opsional:
+ *   --zm-viewport-height  tinggi kanvas (bawaan clamp(20rem, 52vw, 30rem))
  */
 
 .zm-map {
 	color: var(--zm-text);
-}
-
-/* Kontrol level digambar seperti skala peta: segmen berjajar dengan garis tinta. */
-.zm-scale {
-	display: inline-flex;
-	max-width: 100%;
-	border: 1.5px solid var(--zm-ink);
-	border-radius: 2px;
-}
-
-.zm-level {
-	display: flex;
-	flex-direction: column;
-	align-items: flex-start;
-	flex: 1 1 auto;
-	min-height: 44px;
-	min-width: 0;
-	padding: 0.3rem 0.6rem;
-	border: 0;
-	border-inline-start: 1.5px solid var(--zm-ink);
-	background: var(--zm-paper);
-	color: var(--zm-ink);
-	font: inherit;
-	line-height: 1.15;
-	text-align: start;
-}
-
-.zm-level:first-child {
-	border-inline-start: 0;
-}
-
-.zm-level-z {
-	font-family: var(--zm-font-mono);
-	font-size: var(--zm-text-xs);
-	font-weight: 600;
-}
-
-.zm-level-name {
-	font-size: var(--zm-text-sm);
-}
-
-.zm-level:hover {
-	background: var(--zm-hover);
-}
-
-.zm-level[aria-pressed='true'] {
-	background: var(--zm-ink);
-	color: var(--zm-paper);
-}
-
-.zm-level:focus-visible {
-	outline: 2px solid var(--zm-accent);
-	outline-offset: 2px;
-	position: relative;
-}
-
-.zm-level:active {
-	transform: translateY(1px);
 }
 
 /*
@@ -156,15 +99,6 @@
 	color: var(--zm-ink);
 	font-family: inherit;
 	text-align: start;
-}
-
-.zm-stage .zm-place--opens {
-	border-width: 2px;
-	border-color: var(--zm-ink);
-}
-
-.zm-stage .zm-place--opens:hover {
-	background: var(--zm-hover);
 }
 
 /* Wilayah: batas putus-putus seperti batas administratif di peta. */
@@ -306,18 +240,7 @@
 	text-anchor: middle;
 }
 
-.zm-stage .zm-more {
-	position: absolute;
-	top: calc(var(--u) * 4);
-	right: calc(var(--u) * 8);
-	font-weight: 600;
-	color: var(--zm-ink);
-}
-
-/*
- * Kotak yang bisa dipilih (render dengan `selectable`): tempat daun dan baris kartu menjadi
- * <button>. Docs tidak memakai mode ini, jadi aturan di bawah tidak mengubah tampilannya.
- */
+/* Kotak daun dan baris kartu menjadi <button> supaya bisa difokus dan diperbesar dengan keyboard. */
 .zm-stage button.zm-member {
 	border-width: 1px 0 0;
 	text-align: start;
@@ -327,7 +250,7 @@
 	border-top-width: 1.5px;
 }
 
-.zm-stage button.zm-place:not(.zm-place--opens):hover,
+.zm-stage button.zm-place:hover,
 .zm-stage button.zm-member:hover {
 	background: var(--zm-hover);
 }
@@ -336,24 +259,6 @@
 .zm-stage .zm-card-head:focus-visible {
 	outline: 2px solid var(--zm-accent);
 	outline-offset: -2px;
-}
-
-/*
- * Kotak untuk elemen yang sedang dilihat di teks: garis vermilion yang lebih tebal.
- * Vermilion di peta berarti "yang sedang dilihat", sama dengan rute yang disorot.
- */
-.zm-stage .zm-place.is-current,
-.zm-stage .zm-card.is-current {
-	border-color: var(--zm-route);
-	box-shadow: inset 0 0 0 1.5px var(--zm-route);
-}
-
-.zm-stage .zm-region.is-current {
-	border: 2.5px dashed var(--zm-route);
-}
-
-.zm-stage .zm-member.is-current {
-	box-shadow: inset 0 0 0 2px var(--zm-route);
 }
 
 .zm-map .zm-routes-title {
@@ -505,4 +410,254 @@
 	overflow: hidden;
 	clip-path: inset(50%);
 	white-space: nowrap;
+}
+
+/*
+ * Tata letak komponen dari `renderMapHtml`: panel samping (tab langkah alur | relasi) di kiri kanvas, dan
+ * kontrol yang mengapung di atas kanvas. Di layar sempit panel turun ke bawah kanvas.
+ */
+.zm-map {
+	container: zm-map / inline-size;
+}
+
+.zm-frame {
+	border: 1px solid var(--zm-rule);
+	background: var(--zm-paper);
+}
+
+/* Kanvas: viewport plus lapisan kontrol mengapung. Lapisan itu tidak menangkap pointer, jadi peta tetap bisa diseret. */
+.zm-canvas {
+	position: relative;
+	container: zm-canvas / inline-size;
+}
+
+.zm-overlay {
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	pointer-events: none;
+}
+
+.zm-overlay[hidden] { display: none; }
+
+/* Satu baris di atas: alur di kiri, zoom di kanan. */
+.zm-float-bar {
+	display: flex;
+	padding: 0.625rem;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	gap: 0.5rem;
+}
+
+.zm-float-bar > * { pointer-events: auto; }
+
+.zm-camera-controls {
+	margin-inline-start: auto;
+	display: inline-flex;
+	align-items: center;
+	border: 1.5px solid var(--zm-ink);
+	border-radius: 2px;
+	background: var(--zm-paper);
+	box-shadow: 0 2px 8px rgb(0 0 0 / 0.25);
+	color: var(--zm-ink);
+}
+
+.zm-camera-controls button {
+	display: grid;
+	place-items: center;
+	inline-size: 44px;
+	block-size: 44px;
+	padding: 0;
+	border: 0;
+	background: var(--zm-paper);
+	color: inherit;
+	cursor: pointer;
+}
+
+.zm-camera-controls button[data-zoom-fit] { border-inline-start: 1px solid var(--zm-ink); }
+.zm-camera-controls button:hover:not(:disabled) { background: var(--zm-hover); }
+.zm-camera-controls button:active:not(:disabled) { box-shadow: inset 0 0 0 1px var(--zm-ink); }
+.zm-camera-controls button:disabled { color: var(--zm-muted); cursor: default; }
+.zm-camera-controls button:focus-visible { outline: 2px solid var(--zm-accent); outline-offset: 2px; z-index: 1; }
+.zm-camera-controls svg { inline-size: 1.1rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.zm-camera-controls span { min-inline-size: 3rem; text-align: center; font-size: var(--zm-text-sm); font-variant-numeric: tabular-nums; }
+
+.zm-float-flows .zm-flow {
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.2rem 0.45rem;
+	background: var(--zm-paper);
+	box-shadow: 0 2px 8px rgb(0 0 0 / 0.25);
+	cursor: pointer;
+}
+
+.zm-float-flows .zm-flow:hover { background: var(--zm-hover); }
+
+.zm-float-flows .zm-flow .zm-route-meta::before {
+	content: '·';
+	margin-inline-end: 0.35rem;
+}
+
+.zm-float-flows .zm-flow[aria-pressed='true'] { color: var(--zm-route); }
+
+/* Petunjuk kecil di kiri bawah, tidak menangkap pointer; disembunyikan di kanvas sempit. */
+.zm-hint {
+	position: absolute;
+	inset: auto auto 0.625rem 0.625rem;
+	max-inline-size: calc(100% - 1.25rem);
+	margin: 0;
+	padding: 0.2rem 0.45rem;
+	border-radius: 2px;
+	background: color-mix(in srgb, var(--zm-paper) 80%, transparent);
+	font-size: var(--zm-text-xs);
+	color: var(--zm-muted);
+	pointer-events: none;
+}
+
+@container zm-canvas (max-width: 36rem) {
+	.zm-hint { display: none; }
+}
+
+/* Kanvas sempit: zoom pindah ke kanan bawah supaya tidak memakan baris kedua di atas. */
+@container zm-canvas (max-width: 28rem) {
+	.zm-camera-controls { position: absolute; inset: auto 0.625rem 0.625rem auto; }
+}
+
+.zm-viewport {
+	block-size: var(--zm-viewport-height, clamp(20rem, 52vw, 30rem));
+	overflow: auto;
+	padding: 1rem;
+}
+
+.zm-viewport[data-ready] {
+	position: relative;
+	overflow: hidden;
+	padding: 0;
+	touch-action: pan-y;
+	cursor: grab;
+	user-select: none;
+}
+
+.zm-viewport[data-ready] [data-zoom-to] { cursor: zoom-in; }
+.zm-viewport[data-dragging], .zm-viewport[data-dragging] [data-zoom-to] { cursor: grabbing; }
+.zm-viewport[data-compact] .zm-place { padding: calc(var(--u) * 3) calc(var(--u) * 5); font-size: calc(var(--u) * 12); overflow: hidden; }
+.zm-viewport[data-compact] .zm-place :is(.zm-kind, .zm-tech) { display: none; }
+.zm-viewport[data-ready] [data-zoom-to]:focus-visible { outline: calc(var(--u) * 2) solid var(--zm-accent); outline-offset: calc(var(--u) * -2); }
+
+.zm-viewport:focus-visible {
+	outline: 2px solid var(--zm-accent);
+	outline-offset: 2px;
+}
+
+.zm-viewport .zm-stage {
+	width: min(100%, calc(var(--zm-w) * 0.5px));
+	margin-inline: auto;
+}
+
+.zm-viewport[data-ready] .zm-stage {
+	--u: calc(1px / max(var(--zm-zoom, 0.5), 0.32));
+	position: absolute;
+	inset: 0 auto auto 0;
+	width: calc(var(--zm-w) * 1px);
+	margin: 0;
+	transform-origin: 0 0;
+}
+
+.zm-body {
+	display: flex;
+	flex-direction: column;
+}
+
+.zm-side {
+	order: 1;
+	display: flex;
+	flex-direction: column;
+}
+
+/* Tab: Langkah alur | Relasi. Tanpa alur, hanya judul relasi. */
+.zm-tabs {
+	display: flex;
+	margin: 0;
+	border-block: 1px solid var(--zm-rule);
+	background: var(--zm-place-bg);
+}
+
+.zm-tabs [role='tab'] {
+	flex: 1 1 0;
+	min-block-size: 44px;
+	padding: 0.375rem 0.625rem;
+	border: 0;
+	border-block-end: 2px solid transparent;
+	background: none;
+	color: var(--zm-muted);
+	font: inherit;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.zm-tabs [role='tab']:hover { background: var(--zm-hover); color: var(--zm-ink); }
+.zm-tabs [role='tab'][aria-selected='true'] { color: var(--zm-ink); border-block-end-color: var(--zm-route); }
+.zm-tabs [role='tab']:focus-visible { outline: 2px solid var(--zm-accent); outline-offset: -2px; }
+
+.zm-side-title {
+	align-items: center;
+	min-block-size: 44px;
+	padding: 0.375rem 0.625rem;
+	color: var(--zm-ink);
+	font-weight: 600;
+}
+
+.zm-relation-count { margin-inline-start: 0.25rem; color: var(--zm-muted); font-weight: 400; font-variant-numeric: tabular-nums; }
+
+.zm-tabpanel[hidden] { display: none; }
+
+.zm-flow-details { padding: 0.75rem 0.625rem; }
+.zm-flow-details:empty { display: none; }
+.zm-flow-details .zm-flow-steps { grid-template-columns: minmax(0, 1fr); margin-top: 0.5rem; }
+.zm-flow-details .zm-route-ends { overflow-wrap: anywhere; }
+
+.zm-flow-empty { margin: 0; padding: 0.75rem 0.625rem; font-size: var(--zm-text-sm); color: var(--zm-muted); }
+.zm-flow-details:not(:empty) + .zm-flow-empty { display: none; }
+
+.zm-relations .zm-route-list { display: block; }
+.zm-relations .zm-route-list > li + li { border-block-start: 1px solid var(--zm-rule); }
+.zm-relations .zm-route { justify-content: center; padding-inline: 0.625rem; overflow-wrap: anywhere; }
+.zm-relations button.zm-route { cursor: pointer; }
+.zm-relations .zm-route[aria-expanded='true'] .zm-route-ends { color: var(--zm-route); }
+.zm-relations button.zm-route:hover { background: var(--zm-hover); border-color: transparent; }
+.zm-relations .zm-route:focus-visible { outline-offset: -2px; }
+.zm-relations .zm-route-detail { margin: 0; padding: 0 0.625rem 0.625rem; }
+.zm-relations .zm-empty { margin: 0; padding: 0.625rem; }
+
+/* Cukup lebar: panel di kiri kanvas, setinggi kanvas, dan bisa digulir sendiri. */
+@container zm-map (min-width: 40rem) {
+	.zm-body {
+		flex-direction: row;
+		block-size: var(--zm-viewport-height, clamp(20rem, 52vw, 30rem));
+	}
+
+	.zm-side {
+		order: 0;
+		flex: 0 0 clamp(15rem, 32%, 20rem);
+		min-block-size: 0;
+		overflow-y: auto;
+		overscroll-behavior: contain;
+		border-inline-end: 1px solid var(--zm-rule);
+	}
+
+	.zm-canvas {
+		flex: 1 1 auto;
+		min-inline-size: 0;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.zm-viewport {
+		flex: 1 1 auto;
+		block-size: auto;
+	}
+
+	.zm-tabs { position: sticky; top: 0; z-index: 1; border-block-start: 0; }
+	.zm-relations .zm-route-list > li:last-child { border-block-end: 1px solid var(--zm-rule); }
 }
