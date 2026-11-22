@@ -1,8 +1,8 @@
 import { expect, test } from 'bun:test';
 import { readFileSync, readdirSync } from 'node:fs';
-import { compileProject, createMap, formatFile, initDim } from '../src/index.ts';
+import { compileProject, createMap, formatFile, initDim, type MapView } from '../src/index.ts';
 
-test('the compiled WASM projects the shop fixture at Z2 and Z4', async () => {
+test('the compiled WASM builds the shop map view and its state changes', async () => {
 	await initDim();
 	const shop = new URL('./fixtures/shop/', import.meta.url);
 	const files = Object.fromEntries(readdirSync(shop).filter((name) => name.endsWith('.dim'))
@@ -13,23 +13,27 @@ test('the compiled WASM projects the shop fixture at Z2 and Z4', async () => {
 	expect(compiled.model?.version).toBe('0.5');
 	const map = createMap(compiled.model!);
 	try {
-		const z2 = map.project(map.expandedForLevel(2), { flow: 'checkout', fixed: true });
-		const z4 = map.project(map.expandedForLevel(4), { flow: 'checkout', fixed: true });
-		const db = z2.routes.filter((route) => route.from === 'shop.api' && route.to === 'shop.db');
-		expect(db).toHaveLength(1);
-		expect(db[0]).toMatchObject({
-			sources: ['insert_order', 'shop.api.orders.repo.find->shop.db#0'],
-			ops: ['write', 'read'],
-			data: [{ dir: 'push', payload: ['Order'] }, { dir: 'pull', payload: ['Order'] }],
-			inFlow: true,
-		});
-		expect(db[0].path).toMatch(/^M/);
-		expect(z2.flowSteps.flatMap(({ steps }) => steps)).toEqual([1, 2, 5, 7]);
-		expect(z4.flowSteps.flatMap(({ steps }) => steps)).toEqual([1, 2, 3, 4, 5, 6, 7]);
-		expect(z2.hiddenSteps).toBe(3);
-		expect(z4.hiddenSteps).toBe(0);
-		expect(z4.boxes.find(({ rect }) => rect.id === 'shop')?.rect)
-			.toEqual(z2.boxes.find(({ rect }) => rect.id === 'shop')?.rect);
+		// Elemen terbuka tingkat Z2: sistem saja.
+		const z2: MapView = { expanded: ['payment', 'shop'], flow: 'checkout', pinned: null };
+		const view = map.view(z2, 'id');
+		const db = view.routes.findIndex((r) => r.from === 'API' && r.to === 'Postgres');
+		expect(view.routes[db].meta).toBe('write, read · kirim Order · ambil Order · 2 relasi');
+		expect(view.edges[db]).toMatchObject({ inFlow: true, hot: true });
+		expect(view.edges[db].path).toMatch(/^M/);
+		expect(view.flow?.title).toBe('Langkah Checkout');
+		expect(view.flow?.steps).toHaveLength(4);
+		expect(view.flow?.hidden).toStartWith('3 langkah tidak tampil');
+		expect(map.view(z2, 'en').flows[0].steps).toBe('7 steps');
+
+		// Transisi keadaan berjalan di Rust; JSON-nya bolak-balik apa adanya.
+		const pinned = map.pin(z2, db);
+		expect(pinned).toEqual({ ...z2, pinned: db });
+		expect(map.selectFlow(pinned, 'checkout')).toEqual({ ...z2, flow: null });
+		const zoomed = map.atZoom(z2, 3);
+		expect(zoomed.changed).toBe(true);
+		expect(zoomed.state.expanded.length).toBeGreaterThan(2);
+		expect(map.visible(z2, 'shop.api.orders')).toBe('shop.api');
+		expect(map.box('shop')).toMatchObject({ id: 'shop', region: true });
 	} finally {
 		map.free();
 	}

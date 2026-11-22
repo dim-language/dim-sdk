@@ -1,5 +1,8 @@
+// `@dim/sdk`: wrapper untuk SDK Rust (`crates/dim`) lewat WASM (`crates/dim-web`). Tidak ada aturan atau teks
+// di sini; setiap fungsi hanya memindahkan JSON. Tanpa DOM, jadi bisa dipakai di browser, Node, dan Bun.
+
 import init, { WebMap, compileProject as compile, formatFile as format } from '../wasm/dim_web.js';
-import type { DimData, DimFlow, DimModel, DimNode, DimSpan } from './model.js';
+import type { DimModel, DimSpan } from './model.js';
 
 export interface Diagnostic extends DimSpan {
 	severity: 'error' | 'warning';
@@ -18,6 +21,10 @@ export interface FormattedFile {
 	diagnostics: Diagnostic[];
 }
 
+/** Bahasa teks peta. */
+export type MapLanguage = 'id' | 'en';
+
+/** Kotak di layout penuh (`dim::map::MapBox`). */
 export interface Box {
 	id: string;
 	x: number;
@@ -31,62 +38,105 @@ export interface Box {
 	divider: boolean;
 }
 
-export interface SceneBox {
+/** Pilihan pengguna di peta (`dim::map::MapView`). Simpan apa adanya dan kirim balik ke `DimMap`. */
+export interface MapView {
+	expanded: string[];
+	flow: string | null;
+	pinned: number | null;
+}
+
+/** `dim::map::view::ViewBox`. */
+export interface ViewBox {
 	rect: Box;
 	kind: { type: 'place'; opens: boolean } | { type: 'region' | 'card' | 'member' };
 	text: string;
+	kindLabel: string;
+	description: string | null;
 	detail: string | null;
 	visibility: string | null;
+	visibilityName: string | null;
 	memberTitle: string | null;
 	isStatic: boolean;
 	isAbstract: boolean;
+	label: string;
 }
 
-export interface LiftedEdge {
+export interface ViewEdge {
+	path: string | null;
+	structural: boolean;
+	inFlow: boolean;
+	hot: boolean;
+}
+
+export interface ViewRoute {
 	from: string;
 	to: string;
-	sources: string[];
-	ops: string[];
-	structural: boolean;
-	labels: string[];
-	data: DimData[];
+	meta: string;
 }
 
-export interface FlowStep {
+export interface ViewFlow {
+	id: string;
+	name: string;
+	steps: string;
+	selected: boolean;
+}
+
+export interface ViewStep {
+	n: number;
 	route: number;
-	/** 1-based step numbers in the original flow. */
-	steps: number[];
-	labels: string[];
+	from: string;
+	to: string;
+	meta: string;
 }
 
-export interface MapProjection {
+export interface ViewFlowDetail {
+	title: string;
+	description: string | null;
+	steps: ViewStep[];
+	hidden: string | null;
+}
+
+export interface Badge {
+	route: number;
+	at: { x: number; y: number };
+	width: number;
+	text: string;
+}
+
+/** Semua yang digambar untuk satu `MapView` (`dim::map::MapViewModel`). */
+export interface MapViewModel {
 	width: number;
 	height: number;
-	boxes: SceneBox[];
-	routes: (LiftedEdge & { path: string | null; inFlow: boolean })[];
-	flowSteps: FlowStep[];
-	hiddenSteps: number;
-	badges: { route: number; at: { x: number; y: number }; width: number; text: string }[];
+	boxes: ViewBox[];
+	edges: ViewEdge[];
+	badges: Badge[];
+	routes: ViewRoute[];
+	empty: string | null;
+	flows: ViewFlow[];
+	flow: ViewFlowDetail | null;
+	to: string;
 }
 
-export interface MapData {
-	nodes: ReadonlyMap<string, DimNode>;
-	flows: readonly DimFlow[];
-	expandedForLevel(level: number): Set<string>;
-	expanded(scale: number, previous?: ReadonlySet<string>): Set<string>;
-	toggle(id: string, expanded: ReadonlySet<string>): Set<string>;
-	visible(id: string, expanded: ReadonlySet<string>): string;
-	hasChildren(id: string): boolean;
+/** Satu model yang sudah di-layout. Panggil `free()` kalau tidak dipakai lagi. */
+export interface DimMap {
+	view(state: MapView, language: MapLanguage): MapViewModel;
+	/** Buka/tutup elemen sesuai zoom. `changed` false kalau isinya tetap. */
+	atZoom(state: MapView, scale: number): { changed: boolean; state: MapView };
+	selectFlow(state: MapView, id: string): MapView;
+	pin(state: MapView, route: number): MapView;
+	/** Bawa keadaan dari model lain ke model ini. */
+	carry(state: MapView): MapView;
+	/** Elemen yang menampilkan `id`: dirinya, atau leluhurnya yang tertutup. */
+	visible(state: MapView, id: string): string;
 	box(id: string): Box | undefined;
 	openingScale(id: string): number;
-	project(expanded: ReadonlySet<string>, options?: { flow?: string | null; fixed?: boolean }): MapProjection;
 	free(): void;
 }
 
 let initialization: Promise<void> | undefined;
 let ready = false;
 
-/** Initialize the same WebAssembly module in the browser (URL) or Node/Bun (file bytes). */
+/** Muat modul WebAssembly yang sama di browser (URL) atau Node/Bun (isi file). */
 export function initDim(): Promise<void> {
 	initialization ??= load().then(() => {
 		ready = true;
@@ -101,10 +151,19 @@ async function load() {
 	if (typeof process !== 'undefined' && process.versions?.node) {
 		const fsModule = 'node:fs/promises';
 		const fs: typeof import('node:fs/promises') = await import(/* @vite-ignore */ fsModule);
-		const path = import.meta.resolve('@dim/zoom-map/wasm');
-		await init({ module_or_path: await fs.readFile(new URL(path)) });
+		await init({ module_or_path: await fs.readFile(wasmFileUrl()) });
 	} else {
 		await init();
+	}
+}
+
+// Vite's module runner (astro dev) on Bun can't run `import.meta.resolve`: Bun's `module.register` is a stub,
+// so Vite's resolve hook never takes effect. In that case `import.meta.url` still points at this source file.
+function wasmFileUrl(): URL {
+	try {
+		return new URL(import.meta.resolve('@dim/sdk/wasm'));
+	} catch {
+		return new URL('../wasm/dim_web_bg.wasm', import.meta.url);
 	}
 }
 
@@ -122,24 +181,24 @@ export function formatFile(name: string, text: string): FormattedFile {
 	return JSON.parse(format(name, text));
 }
 
-const encodeIds = (ids: ReadonlySet<string>) => JSON.stringify([...ids]);
-const decodeIds = (json: string) => new Set<string>(JSON.parse(json));
+/** Keadaan awal: belum ada yang terbuka, `flow` disorot kalau diberikan. */
+export function emptyView(flow: string | null = null): MapView {
+	return { expanded: [], flow, pinned: null };
+}
 
-export function createMap(model: DimModel): MapData {
+export function createMap(model: DimModel): DimMap {
 	requireDim();
 	const map = new WebMap(JSON.stringify(model));
+	const s = (state: MapView) => JSON.stringify(state);
 	return {
-		nodes: new Map(model.nodes.map((node) => [node.id, node])),
-		flows: model.flows ?? [],
-		expandedForLevel: (level) => Number.isInteger(level) && level >= 1 && level <= 4
-			? decodeIds(map.expandedForLevel(level)) : new Set(),
-		expanded: (scale, previous = new Set()) => decodeIds(map.expanded(scale, encodeIds(previous))),
-		toggle: (id, expanded) => decodeIds(map.toggle(id, encodeIds(expanded))),
-		visible: (id, expanded) => map.visible(id, encodeIds(expanded)),
-		hasChildren: (id) => map.hasChildren(id),
+		view: (state, language) => JSON.parse(map.view(s(state), language)),
+		atZoom: (state, scale) => JSON.parse(map.atZoom(s(state), scale)),
+		selectFlow: (state, id) => JSON.parse(map.selectFlow(s(state), id)),
+		pin: (state, route) => JSON.parse(map.pin(s(state), route)),
+		carry: (state) => JSON.parse(map.carry(s(state))),
+		visible: (state, id) => map.visible(s(state), id),
 		box: (id) => JSON.parse(map.boxOf(id)) ?? undefined,
 		openingScale: (id) => map.openingScale(id),
-		project: (expanded, options) => JSON.parse(map.project(encodeIds(expanded), options?.flow ?? undefined, options?.fixed ?? false)),
 		free: () => map.free(),
 	};
 }

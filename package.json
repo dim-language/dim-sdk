@@ -1,12 +1,16 @@
 {
-  "name": "@dim/zoom-map",
-  "description": "TypeScript compiler, formatter, and zoomable architecture maps for DIM",
+  "name": "@dim/sdk",
+  "description": "TypeScript SDK for DIM: the compiler, formatter, and zoom map from the Rust SDK, plus a web map component",
   "type": "module",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./map": {
+      "types": "./dist/map/index.d.ts",
+      "import": "./dist/map/index.js"
     },
     "./map.css": "./dist/map.css",
     "./wasm": "./wasm/dim_web_bg.wasm",
@@ -31,7 +35,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "bun scripts/verify-runtime.mjs && tsc -p tsconfig.build.json && cp src/map.css dist/map.css",
+    "build": "bun scripts/verify-runtime.mjs && tsc -p tsconfig.build.json && cp src/map/map.css dist/map.css",
     "check": "tsc --noEmit",
     "test": "bun test"
   }

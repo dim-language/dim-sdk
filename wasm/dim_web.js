@@ -1,5 +1,9 @@
 /* @ts-self-types="./dim_web.d.ts" */
 
+/**
+ * One compiled model with its full layout. The map's state ([`MapView`]) goes in and out as JSON, so the
+ * page keeps it and can render the first frame on the server with the same calls.
+ */
 export class WebMap {
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
@@ -10,6 +14,33 @@ export class WebMap {
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_webmap_free(ptr, 0);
+    }
+    /**
+     * Open and close elements for `scale`: `{ changed, state }`.
+     * @param {string} state
+     * @param {number} scale
+     * @returns {string}
+     */
+    atZoom(state, scale) {
+        let deferred4_0;
+        let deferred4_1;
+        try {
+            const val2 = +scale;
+            const ptr0 = passStringToWasm0(state, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            const len0 = WASM_VECTOR_LEN;
+            const ret = wasm.webmap_atZoom(this.__wbg_ptr, ptr0, len0, val2);
+            var ptr3 = ret[0];
+            var len3 = ret[1];
+            if (ret[3]) {
+                ptr3 = 0; len3 = 0;
+                throw takeFromExternrefTable0(ret[2]);
+            }
+            deferred4_0 = ptr3;
+            deferred4_1 = len3;
+            return getStringFromWasm0(ptr3, len3);
+        } finally {
+            wasm.__wbindgen_free(deferred4_0, deferred4_1, 1);
+        }
     }
     /**
      * @param {string} id
@@ -36,62 +67,29 @@ export class WebMap {
         }
     }
     /**
-     * @param {number} level
+     * Carry a state made for another model over to this one.
+     * @param {string} state
      * @returns {string}
      */
-    expandedForLevel(level) {
-        let deferred2_0;
-        let deferred2_1;
+    carry(state) {
+        let deferred3_0;
+        let deferred3_1;
         try {
-            const ret = wasm.webmap_expandedForLevel(this.__wbg_ptr, level);
-            var ptr1 = ret[0];
-            var len1 = ret[1];
-            if (ret[3]) {
-                ptr1 = 0; len1 = 0;
-                throw takeFromExternrefTable0(ret[2]);
-            }
-            deferred2_0 = ptr1;
-            deferred2_1 = len1;
-            return getStringFromWasm0(ptr1, len1);
-        } finally {
-            wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
-        }
-    }
-    /**
-     * @param {number} scale
-     * @param {string} previous
-     * @returns {string}
-     */
-    expanded(scale, previous) {
-        let deferred4_0;
-        let deferred4_1;
-        try {
-            const val2 = +scale;
-            const ptr0 = passStringToWasm0(previous, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            const ptr0 = passStringToWasm0(state, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
             const len0 = WASM_VECTOR_LEN;
-            const ret = wasm.webmap_expanded(this.__wbg_ptr, val2, ptr0, len0);
-            var ptr3 = ret[0];
-            var len3 = ret[1];
+            const ret = wasm.webmap_carry(this.__wbg_ptr, ptr0, len0);
+            var ptr2 = ret[0];
+            var len2 = ret[1];
             if (ret[3]) {
-                ptr3 = 0; len3 = 0;
+                ptr2 = 0; len2 = 0;
                 throw takeFromExternrefTable0(ret[2]);
             }
-            deferred4_0 = ptr3;
-            deferred4_1 = len3;
-            return getStringFromWasm0(ptr3, len3);
+            deferred3_0 = ptr2;
+            deferred3_1 = len2;
+            return getStringFromWasm0(ptr2, len2);
         } finally {
-            wasm.__wbindgen_free(deferred4_0, deferred4_1, 1);
+            wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
         }
-    }
-    /**
-     * @param {string} id
-     * @returns {boolean}
-     */
-    hasChildren(id) {
-        const ptr0 = passStringToWasm0(id, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        const len0 = WASM_VECTOR_LEN;
-        const ret = wasm.webmap_hasChildren(this.__wbg_ptr, ptr0, len0);
-        return ret !== 0;
     }
     /**
      * @param {string} model
@@ -118,62 +116,18 @@ export class WebMap {
         return ret;
     }
     /**
-     * @param {string} expanded
-     * @param {string | null | undefined} flow
-     * @param {boolean} fixed
+     * @param {string} state
+     * @param {number} route
      * @returns {string}
      */
-    project(expanded, flow, fixed) {
-        let deferred5_0;
-        let deferred5_1;
-        try {
-            const val3 = +fixed;
-            let ptr0, len0, ptr1, len1;
-            try {
-                ptr0 = passStringToWasm0(expanded, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-                len0 = WASM_VECTOR_LEN;
-                ptr1 = isLikeNone(flow) ? 0 : passStringToWasm0(flow, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-                len1 = WASM_VECTOR_LEN;
-            } catch (e) {
-                if (ptr1) { wasm.__wbindgen_free(ptr1, len1 * 1, 1); }
-                if (ptr0) { wasm.__wbindgen_free(ptr0, len0 * 1, 1); }
-                throw e;
-            }
-            const ret = wasm.webmap_project(this.__wbg_ptr, ptr0, len0, ptr1, len1, val3);
-            var ptr4 = ret[0];
-            var len4 = ret[1];
-            if (ret[3]) {
-                ptr4 = 0; len4 = 0;
-                throw takeFromExternrefTable0(ret[2]);
-            }
-            deferred5_0 = ptr4;
-            deferred5_1 = len4;
-            return getStringFromWasm0(ptr4, len4);
-        } finally {
-            wasm.__wbindgen_free(deferred5_0, deferred5_1, 1);
-        }
-    }
-    /**
-     * @param {string} id
-     * @param {string} expanded
-     * @returns {string}
-     */
-    toggle(id, expanded) {
+    pin(state, route) {
         let deferred4_0;
         let deferred4_1;
         try {
-            let ptr0, len0, ptr1, len1;
-            try {
-                ptr0 = passStringToWasm0(id, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-                len0 = WASM_VECTOR_LEN;
-                ptr1 = passStringToWasm0(expanded, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-                len1 = WASM_VECTOR_LEN;
-            } catch (e) {
-                if (ptr1) { wasm.__wbindgen_free(ptr1, len1 * 1, 1); }
-                if (ptr0) { wasm.__wbindgen_free(ptr0, len0 * 1, 1); }
-                throw e;
-            }
-            const ret = wasm.webmap_toggle(this.__wbg_ptr, ptr0, len0, ptr1, len1);
+            const val2 = +route;
+            const ptr0 = passStringToWasm0(state, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            const len0 = WASM_VECTOR_LEN;
+            const ret = wasm.webmap_pin(this.__wbg_ptr, ptr0, len0, val2);
             var ptr3 = ret[0];
             var len3 = ret[1];
             if (ret[3]) {
@@ -188,19 +142,89 @@ export class WebMap {
         }
     }
     /**
+     * @param {string} state
      * @param {string} id
-     * @param {string} expanded
      * @returns {string}
      */
-    visible(id, expanded) {
+    selectFlow(state, id) {
         let deferred4_0;
         let deferred4_1;
         try {
             let ptr0, len0, ptr1, len1;
             try {
-                ptr0 = passStringToWasm0(id, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+                ptr0 = passStringToWasm0(state, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
                 len0 = WASM_VECTOR_LEN;
-                ptr1 = passStringToWasm0(expanded, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+                ptr1 = passStringToWasm0(id, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+                len1 = WASM_VECTOR_LEN;
+            } catch (e) {
+                if (ptr1) { wasm.__wbindgen_free(ptr1, len1 * 1, 1); }
+                if (ptr0) { wasm.__wbindgen_free(ptr0, len0 * 1, 1); }
+                throw e;
+            }
+            const ret = wasm.webmap_selectFlow(this.__wbg_ptr, ptr0, len0, ptr1, len1);
+            var ptr3 = ret[0];
+            var len3 = ret[1];
+            if (ret[3]) {
+                ptr3 = 0; len3 = 0;
+                throw takeFromExternrefTable0(ret[2]);
+            }
+            deferred4_0 = ptr3;
+            deferred4_1 = len3;
+            return getStringFromWasm0(ptr3, len3);
+        } finally {
+            wasm.__wbindgen_free(deferred4_0, deferred4_1, 1);
+        }
+    }
+    /**
+     * Everything drawn for `state`, with its text in `language` ("id" or "en").
+     * @param {string} state
+     * @param {string} language
+     * @returns {string}
+     */
+    view(state, language) {
+        let deferred4_0;
+        let deferred4_1;
+        try {
+            let ptr0, len0, ptr1, len1;
+            try {
+                ptr0 = passStringToWasm0(state, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+                len0 = WASM_VECTOR_LEN;
+                ptr1 = passStringToWasm0(language, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+                len1 = WASM_VECTOR_LEN;
+            } catch (e) {
+                if (ptr1) { wasm.__wbindgen_free(ptr1, len1 * 1, 1); }
+                if (ptr0) { wasm.__wbindgen_free(ptr0, len0 * 1, 1); }
+                throw e;
+            }
+            const ret = wasm.webmap_view(this.__wbg_ptr, ptr0, len0, ptr1, len1);
+            var ptr3 = ret[0];
+            var len3 = ret[1];
+            if (ret[3]) {
+                ptr3 = 0; len3 = 0;
+                throw takeFromExternrefTable0(ret[2]);
+            }
+            deferred4_0 = ptr3;
+            deferred4_1 = len3;
+            return getStringFromWasm0(ptr3, len3);
+        } finally {
+            wasm.__wbindgen_free(deferred4_0, deferred4_1, 1);
+        }
+    }
+    /**
+     * The element that shows `id` in `state`: itself, or its closed ancestor.
+     * @param {string} state
+     * @param {string} id
+     * @returns {string}
+     */
+    visible(state, id) {
+        let deferred4_0;
+        let deferred4_1;
+        try {
+            let ptr0, len0, ptr1, len1;
+            try {
+                ptr0 = passStringToWasm0(state, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+                len0 = WASM_VECTOR_LEN;
+                ptr1 = passStringToWasm0(id, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
                 len1 = WASM_VECTOR_LEN;
             } catch (e) {
                 if (ptr1) { wasm.__wbindgen_free(ptr1, len1 * 1, 1); }
@@ -333,10 +357,6 @@ function getUint8ArrayMemory0() {
         cachedUint8ArrayMemory0 = new Uint8Array(wasm.memory.buffer);
     }
     return cachedUint8ArrayMemory0;
-}
-
-function isLikeNone(x) {
-    return x === undefined || x === null;
 }
 
 function passStringToWasm0(arg, malloc, realloc) {

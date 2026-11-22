@@ -3,13 +3,18 @@
 DIM (Diagram In Markup) describes software architecture as a text model you can explore from systems down to code. This SDK wraps the compiled DIM runtime in WebAssembly. The [documentation and examples](https://github.com/dim-language/docs) live in their own repository.
 
 ```sh
-npm install @dim/zoom-map
+npm install @dim/sdk
 ```
 
-The packaged SDK is also available from [GitHub Releases](https://github.com/dim-language/dim-sdk/releases/tag/v0.1.0).
+The packaged SDK is also available from [GitHub Releases](https://github.com/dim-language/dim-sdk/releases/tag/v0.2.0).
+
+The SDK has two entries:
+
+- `@dim/sdk` wraps the Rust SDK compiled to WebAssembly. It only passes JSON across and uses no DOM, so it runs in browsers, Node, and Bun. All map rules and map text (Indonesian and English) come from Rust.
+- `@dim/sdk/map` is the web map component. It turns the SDK's view model into HTML and handles the camera, side panel tabs, and floating controls.
 
 ```ts
-import { compileProject, createMap, initDim } from '@dim/zoom-map';
+import { compileProject, createMap, emptyView, initDim } from '@dim/sdk';
 
 await initDim();
 const { model, diagnostics } = compileProject('main.dim', {
@@ -19,13 +24,27 @@ if (!model) throw new Error(JSON.stringify(diagnostics));
 
 const map = createMap(model);
 try {
-  console.log(map.project(map.expandedForLevel(1)));
+  const state = map.atZoom(emptyView(), 0.5).state;
+  const view = map.view(state, 'en');
+  console.log(view.routes.map((route) => `${route.from} → ${route.to}: ${route.meta}`));
 } finally {
   map.free();
 }
 ```
 
-`formatFile` formats one file. Pass a record of files to `compileProject` for models with imports. For a browser map, use `createZoomMap` and import `@dim/zoom-map/map.css`.
+`formatFile` formats one file. Pass a record of files to `compileProject` for models with imports.
+
+For a page, render the map's HTML on the server or in the browser, then mount it:
+
+```ts
+import { renderMapHtml, mountAll } from '@dim/sdk/map';
+import '@dim/sdk/map.css';
+
+element.innerHTML = renderMapHtml(model, { uid: 'shop', language: 'en' });
+await mountAll(element);
+```
+
+The map's colours and fonts are `--zm-*` CSS custom properties; set them to match your site.
 
 ## Develop the SDK
 
