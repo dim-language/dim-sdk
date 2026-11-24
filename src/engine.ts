@@ -1,16 +1,18 @@
 // `@dim/sdk`: wrapper untuk SDK Rust (`crates/dim`) lewat WASM (`crates/dim-web`). Tidak ada aturan atau teks
 // di sini; setiap fungsi hanya memindahkan JSON. Tanpa DOM, jadi bisa dipakai di browser, Node, dan Bun.
 
-import init, { WebMap, compileProject as compile, formatFile as format } from '../wasm/dim_web.js';
-import type { DimModel, DimSpan } from './model.js';
+import init, { WebMap, compileProject as compile, formatFile as format, modelSchema as schema } from '../wasm/dim_web.js';
+import type { DimBackground, DimIcon, DimModel, DimSpan } from './model.js';
 
+/** Satu error (§15). DIM 0.6 tidak punya peringatan; setiap pelanggaran adalah error. */
 export interface Diagnostic extends DimSpan {
-	severity: 'error' | 'warning';
+	severity: 'error';
 	code: string;
 	message: string;
 }
 
 export interface CompiledProject {
+	/** `null` kalau ada minimal satu error. `spans` selalu diisi. */
 	model: DimModel | null;
 	diagnostics: Diagnostic[];
 	files: string[];
@@ -34,7 +36,10 @@ export interface Box {
 	region: boolean;
 	depth: number;
 	card: boolean;
+	/** Untuk baris kartu: id kartunya. */
 	member: string | null;
+	/** Untuk baris field atau varian (bukan elemen): namanya. Id baris itu `<kartu>#<nama>`. */
+	field: string | null;
 	divider: boolean;
 }
 
@@ -51,6 +56,12 @@ export interface ViewBox {
 	kind: { type: 'place'; opens: boolean } | { type: 'region' | 'card' | 'member' };
 	text: string;
 	kindLabel: string;
+	/** Ikon dari `style` di `dim.config` (§5.6), kalau ada. */
+	icon?: DimIcon;
+	/** Token latar dari `style`; `neutral` kalau tidak ada yang cocok. */
+	background: DimBackground;
+	/** Elemen eksternal, selalu digambar dengan garis putus-putus. */
+	external: boolean;
 	description: string | null;
 	detail: string | null;
 	visibility: string | null;
@@ -81,9 +92,13 @@ export interface ViewFlow {
 	selected: boolean;
 }
 
+/** Satu baris daftar langkah: langkah, atau judul cabang (`route` null) sebelum isi cabangnya. */
 export interface ViewStep {
-	n: number;
-	route: number;
+	/** Nomor di level ini (§12.3), mis. `"4a.1"`; untuk judul cabang `"4a"`. */
+	number: string;
+	/** Kedalaman cabang, 0 untuk jalur utama. */
+	depth: number;
+	route: number | null;
 	from: string;
 	to: string;
 	meta: string;
@@ -174,6 +189,12 @@ function requireDim() {
 export function compileProject(entry: string, files: Readonly<Record<string, string>>): CompiledProject {
 	requireDim();
 	return JSON.parse(compile(entry, JSON.stringify(files)));
+}
+
+/** JSON Schema model (§16), sebagai objek. */
+export function modelSchema(): object {
+	requireDim();
+	return JSON.parse(schema());
 }
 
 export function formatFile(name: string, text: string): FormattedFile {

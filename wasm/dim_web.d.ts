@@ -35,6 +35,11 @@ export function compileProject(entry: string, files: string): string;
 
 export function formatFile(name: string, text: string): string;
 
+/**
+ * JSON Schema model 0.6 (SPEC §16), sama dengan `model.schema.json`.
+ */
+export function modelSchema(): string;
+
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
@@ -42,6 +47,7 @@ export interface InitOutput {
     readonly __wbg_webmap_free: (a: number, b: number) => void;
     readonly compileProject: (a: number, b: number, c: number, d: number) => [number, number, number, number];
     readonly formatFile: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+    readonly modelSchema: () => [number, number];
     readonly webmap_atZoom: (a: number, b: number, c: number, d: number) => [number, number, number, number];
     readonly webmap_boxOf: (a: number, b: number, c: number) => [number, number, number, number];
     readonly webmap_carry: (a: number, b: number, c: number) => [number, number, number, number];

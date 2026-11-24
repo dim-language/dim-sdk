@@ -17,6 +17,9 @@
  *
  * Opsional:
  *   --zm-viewport-height  tinggi kanvas (bawaan clamp(20rem, 52vw, 30rem))
+ *   --zm-tone-<token>     warna dasar token latar dari `style` (SPEC §5.8): accent, info, success, warning,
+ *                         danger, blue, green, purple, orange, pink, teal. Latar dan garis kotak dicampur dari
+ *                         warna ini dan --zm-place-bg/--zm-place-border, jadi tetap terbaca di tema terang dan gelap.
  */
 
 .zm-map {
@@ -106,6 +109,78 @@
 	z-index: 0;
 	border: 1.5px dashed var(--zm-region-border);
 	border-radius: 2px;
+}
+
+/* Latar dari `style` (SPEC §5.6, §5.8). `neutral` memakai warna kotak biasa. */
+.zm-map {
+	--zm-tone-accent: var(--zm-accent);
+	--zm-tone-info: #2f6fb3;
+	--zm-tone-success: #2e8b57;
+	--zm-tone-warning: #c98a12;
+	--zm-tone-danger: #c4362c;
+	--zm-tone-blue: #3a6fd8;
+	--zm-tone-green: #3c9a4e;
+	--zm-tone-purple: #8a55c9;
+	--zm-tone-orange: #d9772b;
+	--zm-tone-pink: #cf4f8f;
+	--zm-tone-teal: #23948f;
+}
+
+.zm-stage [data-background] { --zm-tone: transparent; }
+.zm-stage [data-background='accent'] { --zm-tone: var(--zm-tone-accent); }
+.zm-stage [data-background='info'] { --zm-tone: var(--zm-tone-info); }
+.zm-stage [data-background='success'] { --zm-tone: var(--zm-tone-success); }
+.zm-stage [data-background='warning'] { --zm-tone: var(--zm-tone-warning); }
+.zm-stage [data-background='danger'] { --zm-tone: var(--zm-tone-danger); }
+.zm-stage [data-background='blue'] { --zm-tone: var(--zm-tone-blue); }
+.zm-stage [data-background='green'] { --zm-tone: var(--zm-tone-green); }
+.zm-stage [data-background='purple'] { --zm-tone: var(--zm-tone-purple); }
+.zm-stage [data-background='orange'] { --zm-tone: var(--zm-tone-orange); }
+.zm-stage [data-background='pink'] { --zm-tone: var(--zm-tone-pink); }
+.zm-stage [data-background='teal'] { --zm-tone: var(--zm-tone-teal); }
+
+.zm-stage :is(.zm-place, .zm-card)[data-background]:not([data-background='neutral']) {
+	border-color: color-mix(in oklab, var(--zm-tone) 55%, var(--zm-place-border));
+	background: color-mix(in oklab, var(--zm-tone) 14%, var(--zm-place-bg));
+}
+
+.zm-stage .zm-region[data-background]:not([data-background='neutral']) {
+	border-color: color-mix(in oklab, var(--zm-tone) 55%, var(--zm-region-border));
+	background: color-mix(in oklab, var(--zm-tone) 5%, transparent);
+}
+
+/* Elemen eksternal selalu putus-putus, dan tidak bisa diubah lewat `style` (SPEC §5.6). */
+.zm-stage :is(.zm-place, .zm-card)[data-external] {
+	border-style: dashed;
+}
+
+.zm-stage .zm-region[data-external] {
+	border-style: dotted;
+}
+
+.zm-stage .zm-icon {
+	flex: none;
+	width: calc(var(--u) * 16);
+	height: calc(var(--u) * 16);
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 1.75;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	color: color-mix(in oklab, var(--zm-tone, var(--zm-muted)) 70%, var(--zm-ink));
+}
+
+/* Ikon di pojok kanan atas kotak atau kepala wilayah/kartu, supaya nama tetap sejajar kiri. */
+.zm-stage .zm-place > .zm-icon,
+.zm-stage :is(.zm-region-head, .zm-card-head) > .zm-icon {
+	position: absolute;
+	top: calc(var(--u) * 7);
+	right: calc(var(--u) * 8);
+}
+
+.zm-stage .zm-place:has(> .zm-icon),
+.zm-stage :is(.zm-region-head, .zm-card-head):has(> .zm-icon) {
+	padding-inline-end: calc(var(--u) * 30);
 }
 
 /* Nama wilayah di atas, label jenis di bawahnya, supaya nama panjang tidak terpotong. */
@@ -362,6 +437,21 @@
 	gap: 0.6rem;
 	align-items: flex-start;
 	margin: 0;
+	padding-inline-start: calc(var(--zm-depth, 0) * 1rem);
+}
+
+/* Judul cabang `alt`, `opt`, `par`: nomor bloknya dengan garis, bukan isian. */
+.zm-flows .zm-branch .zm-step-no {
+	background: none;
+	box-shadow: inset 0 0 0 1.5px var(--zm-route);
+	color: var(--zm-route);
+}
+
+.zm-flows .zm-branch-title {
+	font-size: var(--zm-text-sm);
+	font-variant: small-caps;
+	letter-spacing: 0.03em;
+	color: var(--zm-muted);
 }
 
 .zm-flows .zm-step-no {

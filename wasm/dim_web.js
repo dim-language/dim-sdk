@@ -317,6 +317,23 @@ export function formatFile(name, text) {
         wasm.__wbindgen_free(deferred4_0, deferred4_1, 1);
     }
 }
+
+/**
+ * JSON Schema model 0.6 (SPEC §16), sama dengan `model.schema.json`.
+ * @returns {string}
+ */
+export function modelSchema() {
+    let deferred1_0;
+    let deferred1_1;
+    try {
+        const ret = wasm.modelSchema();
+        deferred1_0 = ret[0];
+        deferred1_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+    }
+}
 function __wbg_get_imports() {
     const import0 = {
         __proto__: null,

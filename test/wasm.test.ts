@@ -1,29 +1,42 @@
 import { expect, test } from 'bun:test';
 import { readFileSync, readdirSync } from 'node:fs';
-import { compileProject, createMap, formatFile, initDim, type MapView } from '../src/index.ts';
+import { compileProject, createMap, formatFile, initDim, modelSchema, type MapView } from '../src/index.ts';
+
+const shop = new URL('./fixtures/shop/', import.meta.url);
+// Fixture dari docs/examples/shop, dengan `class repo` diganti `rows` (`repo` keyword di SPEC §3.5).
+const files = Object.fromEntries(readdirSync(shop).map((name) => [name, readFileSync(new URL(name, shop), 'utf8')]));
 
 test('the compiled WASM builds the shop map view and its state changes', async () => {
 	await initDim();
-	const shop = new URL('./fixtures/shop/', import.meta.url);
-	const files = Object.fromEntries(readdirSync(shop).filter((name) => name.endsWith('.dim'))
-		.map((name) => [name, readFileSync(new URL(name, shop), 'utf8')]));
 	const compiled = compileProject('main.dim', files);
-	expect(compiled.diagnostics.filter((d) => d.severity === 'error')).toEqual([]);
-	expect(compiled.files).toEqual(['main.dim', 'shop.dim', 'payment.dim']);
-	expect(compiled.model?.version).toBe('0.5');
-	const map = createMap(compiled.model!);
+	expect(compiled.diagnostics).toEqual([]);
+	expect(compiled.files).toEqual(['main.dim', 'payment.dim', 'shop.dim', 'dim.config']);
+	const model = compiled.model!;
+	expect(model.version).toBe('0.6');
+	expect(model.spans?.elements['shop.api']?.file).toBe('shop.dim');
+	expect(model.elements.find((e) => e.id === 'shop.db')).toMatchObject({ kind: 'container', role: 'database' });
+
+	const map = createMap(model);
 	try {
-		// Elemen terbuka tingkat Z2: sistem saja.
+		// Z2: sistem terbuka.
 		const z2: MapView = { expanded: ['payment', 'shop'], flow: 'checkout', pinned: null };
 		const view = map.view(z2, 'id');
 		const db = view.routes.findIndex((r) => r.from === 'API' && r.to === 'Postgres');
-		expect(view.routes[db].meta).toBe('write, read · kirim Order · ambil Order · 2 relasi');
+		expect(view.routes[db].meta).toBe('write, read · kirim Order, RefundId · ambil Order · 3 relasi');
 		expect(view.edges[db]).toMatchObject({ inFlow: true, hot: true });
 		expect(view.edges[db].path).toMatch(/^M/);
 		expect(view.flow?.title).toBe('Langkah Checkout');
-		expect(view.flow?.steps).toHaveLength(4);
-		expect(view.flow?.hidden).toStartWith('3 langkah tidak tampil');
-		expect(map.view(z2, 'en').flows[0].steps).toBe('7 steps');
+		// Cabang `alt` tetap tampil walau tinggal satu `case`, dengan judulnya sebelum langkahnya.
+		expect(view.flow?.steps.map((s) => s.number)).toEqual(['1', '2', '3', '4a', '4a.1']);
+		expect(view.flow?.steps[3]).toMatchObject({ route: null, depth: 0, meta: 'pilihan · Pembayaran berhasil' });
+		expect(view.flow?.hidden).toStartWith('5 langkah tidak tampil');
+		expect(map.view(z2, 'en').flows[0].steps).toBe('9 steps');
+
+		// Tampilan dari `style` di dim.config.
+		const box = (id: string) => view.boxes.find((b) => b.rect.id === id)!;
+		expect(box('shop.web')).toMatchObject({ icon: 'browser', background: 'blue', external: false });
+		expect(box('shop.db')).toMatchObject({ icon: 'database', background: 'info' });
+		expect(box('payment')).toMatchObject({ external: true, kindLabel: 'Sistem eksternal' });
 
 		// Transisi keadaan berjalan di Rust; JSON-nya bolak-balik apa adanya.
 		const pinned = map.pin(z2, db);
@@ -34,6 +47,7 @@ test('the compiled WASM builds the shop map view and its state changes', async (
 		expect(zoomed.state.expanded.length).toBeGreaterThan(2);
 		expect(map.visible(z2, 'shop.api.orders')).toBe('shop.api');
 		expect(map.box('shop')).toMatchObject({ id: 'shop', region: true });
+		expect(map.box('shop.api.orders.order#total')).toMatchObject({ member: 'shop.api.orders.order', field: 'total' });
 	} finally {
 		map.free();
 	}
@@ -44,14 +58,17 @@ test('WASM compiler and formatter report positioned errors', async () => {
 	const entry = 'main.dim';
 	const missing = compileProject(entry, {});
 	expect(missing.model).toBeNull();
-	expect(missing.diagnostics).toMatchObject([{ code: 'E040', file: entry, line: 1, col: 1 }]);
-	expect(compileProject(entry, { [entry]: '' }).model?.nodes).toEqual([]);
+	expect(missing.diagnostics).toMatchObject([{ code: 'E601', file: entry, line: 1, col: 1 }]);
+	// Tanpa dim.config: E101.
+	expect(compileProject(entry, { [entry]: 'dim "0.6";\n' }).diagnostics.map((d) => d.code)).toEqual(['E101']);
+	const config = { 'dim.config': 'dim "0.6";\n' };
+	expect(compileProject(entry, { ...config, [entry]: 'dim "0.6";\n' }).model?.elements).toEqual([]);
 
-	const bad = compileProject(entry, { [entry]: 'system a "Tokó 🛒"; a -> nope;' });
+	const bad = compileProject(entry, { ...config, [entry]: 'dim "0.6";\nsystem a "Tokó 🛒";\nr: a -> nope { op use; }\n' });
 	expect(bad.model).toBeNull();
-	expect(bad.diagnostics).toMatchObject([{ code: 'E020', file: entry, line: 1, col: 25, endCol: 29 }]);
+	expect(bad.diagnostics).toMatchObject([{ code: 'E208', file: entry, line: 3, col: 9, endCol: 13 }]);
 
-	const source = 'system shop{container api;}';
+	const source = 'dim "0.6";\nsystem shop "Shop"{container api "API"{role service;}}';
 	const formatted = formatFile(entry, source);
 	expect(formatted.diagnostics).toEqual([]);
 	expect(formatted.text).not.toBe(source);
@@ -60,4 +77,11 @@ test('WASM compiler and formatter report positioned errors', async () => {
 		text: null,
 		diagnostics: [{ code: 'E001', file: entry, severity: 'error' }],
 	});
+});
+
+test('the model schema comes from Rust', async () => {
+	await initDim();
+	const schema = modelSchema() as { title?: string; required?: string[] };
+	expect(schema.required).toContain('elements');
+	expect(JSON.stringify(schema)).toContain('"protocol"');
 });

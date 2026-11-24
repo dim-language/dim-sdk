@@ -2,6 +2,7 @@
 // menyala, nomor langkah, keterangan relasi) sudah dihitung di Rust. Dipakai saat build (SSR) dan di browser.
 
 import type { MapViewModel, ViewBox } from '../engine.js';
+import { iconSvg } from './icons.js';
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -24,7 +25,7 @@ function boxHtml(box: ViewBox, W: number, H: number, interactive: boolean): stri
 	const leafEnd = interactive ? 'button' : 'div';
 
 	if (box.kind.type === 'member') {
-		const cls = ['zm-member', b.divider ? 'zm-member--divider' : '', box.isStatic ? 'is-static' : '', box.isAbstract ? 'is-abstract' : '']
+		const cls = ['zm-member', b.field !== null ? 'zm-member--field' : '', b.divider ? 'zm-member--divider' : '', box.isStatic ? 'is-static' : '', box.isAbstract ? 'is-abstract' : '']
 			.filter(Boolean)
 			.join(' ');
 		const visLabel = box.visibilityName ? `<span class="sr-only">${esc(box.visibilityName)}</span>` : '';
@@ -32,6 +33,9 @@ function boxHtml(box: ViewBox, W: number, H: number, interactive: boolean): stri
 	}
 
 	const kind = `<span class="zm-kind">${esc(box.kindLabel)}</span>`;
+	// Tampilan dari `style` di `dim.config` (§5.6): latar sebagai token, eksternal selalu putus-putus.
+	const look = ` data-background="${box.background}"${box.external ? ' data-external' : ''}`;
+	const icon = box.icon ? iconSvg(box.icon) : '';
 	const name = `<span class="zm-name" title="${esc(box.text)}">${esc(box.text)}</span>`;
 	const heading = (cls: string, content: string) => interactive
 		? `<button type="button" class="${cls}" ${zoomTo}>${content}</button>`
@@ -40,13 +44,13 @@ function boxHtml(box: ViewBox, W: number, H: number, interactive: boolean): stri
 	if (box.kind.type === 'card') {
 		const ctor = box.detail ? `<span class="zm-tech">${esc(box.detail)}</span>` : '';
 		const abstract = box.isAbstract ? ' is-abstract' : '';
-		return `<div class="zm-card${abstract}" style="${style}" data-id="${id}" title="${esc(box.description ?? box.text)}">${heading('zm-card-head', `${name}${kind}${ctor}`)}</div>`;
+		return `<div class="zm-card${abstract}" style="${style}" data-id="${id}"${look} title="${esc(box.description ?? box.text)}">${heading('zm-card-head', `${icon}${name}${kind}${ctor}`)}</div>`;
 	}
 	if (box.kind.type === 'region') {
-		return `<div class="zm-region" style="${style}" data-id="${id}">${heading('zm-region-head', `${name}${kind}`)}</div>`;
+		return `<div class="zm-region" style="${style}" data-id="${id}"${look}>${heading('zm-region-head', `${icon}${name}${kind}`)}</div>`;
 	}
 	const tech = box.detail ? `<span class="zm-tech" title="${esc(box.detail)}">${esc(box.detail)}</span>` : '';
-	return `<${leaf} class="zm-place" style="${style}" data-id="${id}">${name}${kind}${tech}</${leafEnd}>`;
+	return `<${leaf} class="zm-place" style="${style}" data-id="${id}"${look}>${icon}${name}${kind}${tech}</${leafEnd}>`;
 }
 
 export interface Rendered {
@@ -118,8 +122,14 @@ export function render(vm: MapViewModel, uid: string, options: RenderOptions = {
 	if (vm.flow) {
 		const items = vm.flow.steps
 			.map((s) => {
+				const depth = s.depth ? ` style="--zm-depth:${s.depth}"` : '';
+				const no = `<span class="zm-step-no" aria-hidden="true">${esc(s.number)}</span>`;
+				// Judul cabang (`alt`, `opt`, `par`) sebelum langkah-langkah di dalamnya.
+				if (s.route === null) {
+					return `<li class="zm-branch"${depth}>${no}<span class="zm-step-text zm-branch-title">${esc(s.meta)}</span></li>`;
+				}
 				const subline = s.meta ? `<span class="zm-route-meta">${esc(s.meta)}</span>` : '';
-				return `<li><span class="zm-step-no" aria-hidden="true">${s.n}</span><span class="zm-step-text"><span class="zm-route-ends">${ends(s.from, s.to, vm.to)}</span>${subline}</span></li>`;
+				return `<li${depth}>${no}<span class="zm-step-text"><span class="zm-route-ends">${ends(s.from, s.to, vm.to)}</span>${subline}</span></li>`;
 			})
 			.join('');
 		const title = `<p class="zm-routes-title">${esc(vm.flow.title)}</p>`;

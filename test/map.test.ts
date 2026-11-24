@@ -1,35 +1,38 @@
 import { describe, expect, test } from 'bun:test';
-import { initDim, type DimModel, type DimNode } from '../src/index.ts';
+import { compileProject, initDim, type DimModel } from '../src/index.ts';
 import { createZoomMap, mountMap, renderMapHtml, type ZoomMapOptions } from '../src/map/index.ts';
 
 await initDim();
 
-const node = (id: string, kind: DimNode['kind'], parent: string | null = null): DimNode => ({
-	id,
-	kind,
-	name: id.split('.').pop()!,
-	parent,
-	tech: null,
-	external: false,
-});
+const config = 'dim "0.6";\n\nstyle role app { icon browser; background blue; }\n';
 
-function model(extra: DimNode[] = [], withFlow = true): DimModel {
-	return {
-		version: '0.3',
-		nodes: [
-			node('user', 'person'),
-			node('shop', 'system'),
-			node('shop.web', 'container', 'shop'),
-			node('shop.api', 'container', 'shop'),
-			node('shop.api.orders', 'component', 'shop.api'),
-			...extra,
-		],
-		edges: [
-			{ id: 'visit', from: 'user', to: 'shop.web', label: null, op: 'use', data: [] },
-			{ id: 'post', from: 'shop.web', to: 'shop.api.orders', label: null, op: 'call', data: [] },
-		],
-		flows: withFlow ? [{ id: 'f', name: 'Belanja', description: null, steps: [{ edge: 'visit', label: null }] }] : [],
-	};
+/** Model kecil dari sumber 0.6: orang, satu sistem dengan dua container, dan satu flow. */
+function model(extra = '', withFlow = true): DimModel {
+	const main = `dim "0.6";
+
+person user "user";
+
+system shop "shop" {
+  container web "web" { role app; }
+
+  container api "api" {
+    role service;
+    paradigm procedural;
+
+    component orders "orders" {
+      description "Orders.";
+${extra}
+    }
+  }
+}
+
+visit: user -> shop.web { op use; }
+post: shop.web -> shop.api.orders { op call; }
+${withFlow ? 'flow f "Belanja" { step visit; }' : ''}
+`;
+	const out = compileProject('main.dim', { 'dim.config': config, 'main.dim': main });
+	if (!out.model) throw new Error(JSON.stringify(out.diagnostics));
+	return out.model;
 }
 
 function mount(language: ZoomMapOptions['language'] = 'id', scale = 0.2) {
@@ -90,7 +93,7 @@ describe('createZoomMap', () => {
 		const { map } = mount('id', 1.5);
 		map.setModel(model());
 		click(document.querySelector('.zm-flow'));
-		map.setModel(model([node('shop.api.orders.repo', 'code', 'shop.api.orders')], false));
+		map.setModel(model('      function save "save()" { description "Saves."; }', false));
 		expect(map.getState().flow).toBeNull();
 		expect(map.getState().expanded).toContain('shop');
 	});
@@ -98,7 +101,11 @@ describe('createZoomMap', () => {
 	test('boxes and relations carry English labels from Rust', () => {
 		const { map, els } = mount('en', 1.5);
 		map.setModel(model());
-		expect(els.stage.querySelector('[data-zoom-to="shop.web"]')?.getAttribute('aria-label')).toBe('Zoom to web');
+		const web = els.stage.querySelector('[data-zoom-to="shop.web"]')!;
+		expect(web.getAttribute('aria-label')).toBe('Zoom to web');
+		// Latar dan ikon dari `style role app` di dim.config.
+		expect(web.getAttribute('data-background')).toBe('blue');
+		expect(web.querySelector('.zm-icon')?.getAttribute('data-icon')).toBe('browser');
 		expect(els.stage.querySelector('.zm-region .zm-kind')?.textContent).toBe('System');
 		expect(els.routes.querySelector('.sr-only')?.textContent).toBe('to');
 	});
@@ -114,13 +121,13 @@ describe('renderMapHtml', () => {
 		expect(root.querySelector<HTMLElement>('[data-panel="routes"]')?.hidden).toBe(true);
 		expect(root.querySelector('.zm-flow-details')?.textContent).toContain('Belanja steps');
 		expect(root.querySelector('[data-zoom-fit]')?.getAttribute('aria-label')).toBe('Fit to view');
-		expect(JSON.parse(root.querySelector('[data-zoom-data]')!.textContent!).nodes).toHaveLength(5);
+		expect(JSON.parse(root.querySelector('[data-zoom-data]')!.textContent!).elements).toHaveLength(5);
 		// HTML dari server belum bisa ditekan.
 		expect(root.querySelector('.zm-stage button')).toBeNull();
 	});
 
 	test('without flows there is a relations title instead of tabs', () => {
-		document.body.innerHTML = renderMapHtml(model([], false));
+		document.body.innerHTML = renderMapHtml(model('', false));
 		expect(document.querySelector('[data-tabs]')).toBeNull();
 		expect(document.querySelector('.zm-side-title')?.textContent).toContain('Relasi di tampilan ini');
 	});
