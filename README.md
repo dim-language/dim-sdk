@@ -6,7 +6,7 @@ DIM (Diagram In Markup) describes software architecture as a text model you can 
 npm install @dim/sdk
 ```
 
-The packaged SDK is also available from [GitHub Releases](https://github.com/dim-language/dim-sdk/releases/tag/v0.2.0).
+The packaged SDK is also available from [GitHub Releases](https://github.com/dim-language/dim-sdk/releases/tag/v0.3.0).
 
 The SDK has two entries:
 
@@ -18,7 +18,12 @@ import { compileProject, createMap, emptyView, initDim } from '@dim/sdk';
 
 await initDim();
 const { model, diagnostics } = compileProject('main.dim', {
-  'main.dim': 'person buyer; system shop "Shop"; buyer -> shop;',
+  'dim.config': 'dim "0.6";\n',
+  'main.dim': `dim "0.6";
+person buyer "Buyer";
+system shop "Shop";
+buy: buyer -> shop { op use; }
+`,
 });
 if (!model) throw new Error(JSON.stringify(diagnostics));
 
@@ -32,6 +37,8 @@ try {
 }
 ```
 
+The SDK reads and writes DIM 0.6. Every project needs a `dim.config` next to its main file; pass it with the other files. The model follows the language's JSON output format, and its JSON Schema is available as `modelSchema()` or `@dim/sdk/model.schema.json`.
+
 `formatFile` formats one file. Pass a record of files to `compileProject` for models with imports.
 
 For a page, render the map's HTML on the server or in the browser, then mount it:
@@ -44,7 +51,7 @@ element.innerHTML = renderMapHtml(model, { uid: 'shop', language: 'en' });
 await mountAll(element);
 ```
 
-The map's colours and fonts are `--zm-*` CSS custom properties; set them to match your site.
+The map's colours and fonts are `--zm-*` CSS custom properties; set them to match your site. Icons and backgrounds come from the `style` rules in `dim.config`; the `--zm-tone-*` properties set the colour behind each background token.
 
 ## Develop the SDK
 

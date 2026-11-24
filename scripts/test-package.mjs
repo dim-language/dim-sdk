@@ -12,8 +12,9 @@ const packageName = '@dim/sdk';
 const run = (command, args, cwd) => execFileSync(command, args, { cwd, encoding: 'utf8' });
 
 const files = {
-	'main.dim': 'dim "0.5"; import "shop.dim"; person buyer; buy: buyer -> shop "Buys"; flow shopping { step buy; }',
-	'shop.dim': 'system shop "Shop" { container app; }',
+	'dim.config': 'dim "0.6";\n',
+	'main.dim': 'dim "0.6";\nimport "shop.dim";\nperson buyer "Buyer";\nbuy: buyer -> shop "Buys" { op use; }\nflow shopping "Shopping" { step buy; }\n',
+	'shop.dim': 'dim "0.6";\nsystem shop "Shop" { container app "App" { role app; } }\n',
 };
 const smoke = (entry, mapEntry) => `
 import { initDim, compileProject, formatFile, createMap, emptyView } from "${entry}";
@@ -22,17 +23,15 @@ import { createZoomMap } from "${mapEntry}";
 await Promise.all([initDim(), initDim()]);
 const files = ${JSON.stringify(files)};
 const { model, diagnostics } = compileProject('main.dim', files);
-if (model?.version !== '0.5') throw new Error(JSON.stringify(diagnostics));
+if (model?.version !== '0.6') throw new Error(JSON.stringify(diagnostics));
 if (formatFile('shop.dim', files['shop.dim']).text === null) throw new Error('Could not format fixture');
-for (const version of ['0.4', '0.5']) {
-	const map = createMap({ ...model, version });
-	try {
-		const state = map.atZoom(emptyView('shopping'), map.openingScale('shop') * 2).state;
-		const view = map.view(state, 'en');
-		if (view.flow?.steps[0]?.n !== 1) throw new Error('Flow view failed for ' + version);
-	} finally {
-		map.free();
-	}
+const map = createMap(model);
+try {
+	const state = map.atZoom(emptyView('shopping'), map.openingScale('shop') * 2).state;
+	const view = map.view(state, 'en');
+	if (view.flow?.steps[0]?.number !== '1') throw new Error('Flow view failed');
+} finally {
+	map.free();
 }
 if (typeof document !== 'undefined') {
 	const root = document.createElement('div');

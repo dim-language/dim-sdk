@@ -1,0 +1,2471 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Model",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string"
+    },
+    "config": {
+      "$ref": "#/$defs/Config"
+    },
+    "elements": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Element"
+      }
+    },
+    "relations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Relation"
+      }
+    },
+    "flows": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Flow"
+      }
+    },
+    "environments": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Environment"
+      }
+    },
+    "spans": {
+      "description": "Lokasi sumber, hanya kalau diminta (`dim parse --spans`).",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Spans"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "version",
+    "config",
+    "elements",
+    "relations",
+    "flows",
+    "environments"
+  ],
+  "$defs": {
+    "Config": {
+      "type": "object",
+      "properties": {
+        "techs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Tech"
+          }
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Tag"
+          }
+        },
+        "scopes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Scope"
+          }
+        },
+        "roots": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Root"
+          }
+        },
+        "styles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Style"
+          }
+        }
+      },
+      "required": [
+        "techs",
+        "tags",
+        "scopes",
+        "roots",
+        "styles"
+      ]
+    },
+    "Tech": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ]
+    },
+    "Tag": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ]
+    },
+    "Scope": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "value"
+      ]
+    },
+    "Root": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "repo": {
+          "type": "string"
+        },
+        "branch": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "repo",
+        "branch"
+      ]
+    },
+    "Style": {
+      "type": "object",
+      "properties": {
+        "selector": {
+          "$ref": "#/$defs/StyleSelector"
+        },
+        "icon": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Icon"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "background": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Background"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "selector"
+      ]
+    },
+    "StyleSelector": {
+      "description": "`{ \"kind\": \"container\" }`, `{ \"role\": \"database\" }`, atau `{ \"tag\": \"pci\" }`.",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "role": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "role"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tag": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "tag"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "Icon": {
+      "description": "Ikon dari set tertutup (SPEC §5.7).",
+      "type": "string",
+      "enum": [
+        "user",
+        "users",
+        "browser",
+        "mobile",
+        "desktop",
+        "server",
+        "api",
+        "database",
+        "queue",
+        "storage",
+        "cache",
+        "cloud",
+        "lock",
+        "key",
+        "mail",
+        "payment",
+        "cart",
+        "search",
+        "chart",
+        "file",
+        "folder",
+        "gear",
+        "bell",
+        "globe"
+      ]
+    },
+    "Background": {
+      "description": "Token palet latar (SPEC §5.8).",
+      "type": "string",
+      "enum": [
+        "neutral",
+        "accent",
+        "info",
+        "success",
+        "warning",
+        "danger",
+        "blue",
+        "green",
+        "purple",
+        "orange",
+        "pink",
+        "teal"
+      ]
+    },
+    "Element": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "person"
+            }
+          },
+          "$ref": "#/$defs/Person",
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "system"
+            }
+          },
+          "$ref": "#/$defs/System",
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "container"
+            }
+          },
+          "$ref": "#/$defs/Container",
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "component"
+            }
+          },
+          "$ref": "#/$defs/Component",
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "endpoint"
+            }
+          },
+          "$ref": "#/$defs/Endpoint",
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "code"
+            }
+          },
+          "$ref": "#/$defs/Code",
+          "required": [
+            "kind"
+          ]
+        }
+      ]
+    },
+    "Source": {
+      "type": "object",
+      "properties": {
+        "root": {
+          "description": "Root yang berlaku, sudah diwarisi dari leluhur.",
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "line": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint32",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "root",
+        "path"
+      ]
+    },
+    "Person": {
+      "description": "Field yang dimiliki setiap elemen.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Path penuh.",
+          "type": "string"
+        },
+        "parent": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Source"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "meta": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": true
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ]
+    },
+    "System": {
+      "description": "Field yang dimiliki setiap elemen.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Path penuh.",
+          "type": "string"
+        },
+        "parent": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Source"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "meta": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": true
+        },
+        "external": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ]
+    },
+    "ContainerRole": {
+      "description": "Peran container (SPEC §6.5).",
+      "type": "string",
+      "enum": [
+        "app",
+        "service",
+        "database",
+        "queue",
+        "storage",
+        "cache"
+      ]
+    },
+    "Paradigm": {
+      "description": "Paradigma (SPEC §6.6).",
+      "type": "string",
+      "enum": [
+        "procedural",
+        "functional",
+        "oop"
+      ]
+    },
+    "Auth": {
+      "type": "object",
+      "properties": {
+        "scheme": {
+          "$ref": "#/$defs/AuthScheme"
+        },
+        "scopes": {
+          "description": "Id `scope` dari `dim.config`.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "scheme"
+      ]
+    },
+    "AuthScheme": {
+      "type": "string",
+      "enum": [
+        "none",
+        "bearer",
+        "cookie",
+        "basic",
+        "apiKey"
+      ]
+    },
+    "Rate": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/RateKey"
+        },
+        "limit": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "per": {
+          "description": "Durasi seperti ditulis, mis. `\"1m\"`.",
+          "type": "string"
+        },
+        "perMs": {
+          "description": "Durasi yang sama dalam milidetik.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "key",
+        "limit",
+        "per",
+        "perMs"
+      ]
+    },
+    "RateKey": {
+      "type": "string",
+      "enum": [
+        "ip",
+        "user",
+        "session",
+        "apiKey"
+      ]
+    },
+    "Container": {
+      "description": "Field yang dimiliki setiap elemen.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Path penuh.",
+          "type": "string"
+        },
+        "parent": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Source"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "meta": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": true
+        },
+        "role": {
+          "$ref": "#/$defs/ContainerRole"
+        },
+        "paradigms": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Paradigm"
+          }
+        },
+        "techs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "external": {
+          "description": "Benar kalau ditulis `external` atau berada di sistem eksternal.",
+          "type": "boolean"
+        },
+        "prefix": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "auth": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Auth"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Rate"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "role"
+      ]
+    },
+    "Component": {
+      "description": "Field yang dimiliki setiap elemen.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Path penuh.",
+          "type": "string"
+        },
+        "parent": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Source"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "meta": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": true
+        },
+        "paradigms": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Paradigm"
+          }
+        },
+        "techs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "prefix": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "auth": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Auth"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Rate"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ]
+    },
+    "HttpMethod": {
+      "type": "string",
+      "enum": [
+        "get",
+        "post",
+        "put",
+        "patch",
+        "delete",
+        "head",
+        "options"
+      ]
+    },
+    "Param": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/$defs/TypeRef"
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "type"
+      ]
+    },
+    "TypeRef": {
+      "description": "Ekspresi tipe, objek dengan tepat satu key.",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "primitive": {
+              "$ref": "#/$defs/Primitive"
+            }
+          },
+          "required": [
+            "primitive"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "description": "Path penuh ke `record`, `enum`, `union`, `alias`, `class`, atau `interface`.",
+          "type": "object",
+          "properties": {
+            "ref": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "ref"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "list": {
+              "$ref": "#/$defs/TypeRef"
+            }
+          },
+          "required": [
+            "list"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "optional": {
+              "$ref": "#/$defs/TypeRef"
+            }
+          },
+          "required": [
+            "optional"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "map": {
+              "$ref": "#/$defs/MapType"
+            }
+          },
+          "required": [
+            "map"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "Primitive": {
+      "type": "string",
+      "enum": [
+        "string",
+        "int",
+        "float",
+        "decimal",
+        "bool",
+        "bytes",
+        "date",
+        "datetime",
+        "duration",
+        "uuid",
+        "url"
+      ]
+    },
+    "MapType": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/TypeRef"
+        },
+        "value": {
+          "$ref": "#/$defs/TypeRef"
+        }
+      },
+      "required": [
+        "key",
+        "value"
+      ]
+    },
+    "NamedParam": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/$defs/TypeRef"
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "name",
+        "type"
+      ]
+    },
+    "HttpReturns": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "uint16",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "type": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TypeRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "status"
+      ]
+    },
+    "HttpThrows": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "uint16",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "type": {
+          "$ref": "#/$defs/TypeRef"
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "status",
+        "type"
+      ]
+    },
+    "Sets": {
+      "type": "object",
+      "properties": {
+        "target": {
+          "$ref": "#/$defs/SetsTarget"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "target",
+        "name"
+      ]
+    },
+    "SetsTarget": {
+      "type": "string",
+      "enum": [
+        "cookie",
+        "header"
+      ]
+    },
+    "Http": {
+      "type": "object",
+      "properties": {
+        "method": {
+          "$ref": "#/$defs/HttpMethod"
+        },
+        "path": {
+          "type": "string"
+        },
+        "fullPath": {
+          "description": "`prefix` semua leluhur digabung dari luar ke dalam, lalu `path`.",
+          "type": "string"
+        },
+        "params": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Param"
+          }
+        },
+        "queries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Param"
+          }
+        },
+        "headers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/NamedParam"
+          }
+        },
+        "cookies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/NamedParam"
+          }
+        },
+        "body": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TypeRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "returns": {
+          "$ref": "#/$defs/HttpReturns"
+        },
+        "throws": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/HttpThrows"
+          }
+        },
+        "sets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Sets"
+          }
+        }
+      },
+      "required": [
+        "method",
+        "path",
+        "fullPath",
+        "returns"
+      ]
+    },
+    "GrpcStream": {
+      "type": "string",
+      "enum": [
+        "client",
+        "server",
+        "bidi"
+      ]
+    },
+    "GrpcThrows": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/GrpcCode"
+        },
+        "type": {
+          "$ref": "#/$defs/TypeRef"
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "type"
+      ]
+    },
+    "GrpcCode": {
+      "description": "Kode status gRPC untuk `throws` (SPEC §10.4).",
+      "type": "string",
+      "enum": [
+        "cancelled",
+        "unknown",
+        "invalidArgument",
+        "deadlineExceeded",
+        "notFound",
+        "alreadyExists",
+        "permissionDenied",
+        "resourceExhausted",
+        "failedPrecondition",
+        "aborted",
+        "outOfRange",
+        "unimplemented",
+        "internal",
+        "unavailable",
+        "dataLoss",
+        "unauthenticated"
+      ]
+    },
+    "Grpc": {
+      "type": "object",
+      "properties": {
+        "service": {
+          "type": "string"
+        },
+        "rpc": {
+          "type": "string"
+        },
+        "request": {
+          "$ref": "#/$defs/TypeRef"
+        },
+        "returns": {
+          "$ref": "#/$defs/TypeRef"
+        },
+        "stream": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GrpcStream"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "throws": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/GrpcThrows"
+          }
+        }
+      },
+      "required": [
+        "service",
+        "rpc",
+        "request",
+        "returns"
+      ]
+    },
+    "GraphqlOperation": {
+      "type": "string",
+      "enum": [
+        "query",
+        "mutation",
+        "subscription"
+      ]
+    },
+    "Throws": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/TypeRef"
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "Graphql": {
+      "type": "object",
+      "properties": {
+        "operation": {
+          "$ref": "#/$defs/GraphqlOperation"
+        },
+        "field": {
+          "type": "string"
+        },
+        "params": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Param"
+          }
+        },
+        "returns": {
+          "$ref": "#/$defs/TypeRef"
+        },
+        "throws": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Throws"
+          }
+        }
+      },
+      "required": [
+        "operation",
+        "field",
+        "returns"
+      ]
+    },
+    "Event": {
+      "type": "object",
+      "properties": {
+        "event": {
+          "type": "string"
+        },
+        "queue": {
+          "description": "Path penuh ke container ber-`role queue`.",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/TypeRef"
+        }
+      },
+      "required": [
+        "event",
+        "queue",
+        "payload"
+      ]
+    },
+    "Endpoint": {
+      "description": "Field yang dimiliki setiap elemen.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Path penuh.",
+          "type": "string"
+        },
+        "parent": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Source"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "meta": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": true
+        },
+        "handler": {
+          "description": "Path penuh ke `function` atau `method`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "auth": {
+          "description": "`auth` yang berlaku setelah pewarisan.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Auth"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rates": {
+          "description": "`rate` yang berlaku setelah pewarisan per key.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Rate"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "protocol": {
+              "type": "string",
+              "const": "http"
+            }
+          },
+          "$ref": "#/$defs/Http",
+          "required": [
+            "protocol"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "protocol": {
+              "type": "string",
+              "const": "grpc"
+            }
+          },
+          "$ref": "#/$defs/Grpc",
+          "required": [
+            "protocol"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "protocol": {
+              "type": "string",
+              "const": "graphql"
+            }
+          },
+          "$ref": "#/$defs/Graphql",
+          "required": [
+            "protocol"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "protocol": {
+              "type": "string",
+              "const": "event"
+            }
+          },
+          "$ref": "#/$defs/Event",
+          "required": [
+            "protocol"
+          ]
+        }
+      ]
+    },
+    "Module": {
+      "type": "object"
+    },
+    "Returns": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/TypeRef"
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "Function": {
+      "type": "object",
+      "properties": {
+        "async": {
+          "type": "boolean"
+        },
+        "pure": {
+          "type": "boolean"
+        },
+        "effects": {
+          "type": "boolean"
+        },
+        "params": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Param"
+          }
+        },
+        "returns": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Returns"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "throws": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Throws"
+          }
+        }
+      }
+    },
+    "Visibility": {
+      "type": "string",
+      "enum": [
+        "public",
+        "private",
+        "protected",
+        "internal"
+      ]
+    },
+    "Field": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/$defs/TypeRef"
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "type"
+      ]
+    },
+    "Class": {
+      "type": "object",
+      "properties": {
+        "visibility": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Visibility"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "abstract": {
+          "type": "boolean"
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Field"
+          }
+        }
+      }
+    },
+    "Interface": {
+      "type": "object",
+      "properties": {
+        "visibility": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Visibility"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "Method": {
+      "type": "object",
+      "properties": {
+        "async": {
+          "type": "boolean"
+        },
+        "visibility": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Visibility"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "static": {
+          "type": "boolean"
+        },
+        "abstract": {
+          "type": "boolean"
+        },
+        "params": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Param"
+          }
+        },
+        "returns": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Returns"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "throws": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Throws"
+          }
+        }
+      }
+    },
+    "Constructor": {
+      "type": "object",
+      "properties": {
+        "visibility": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Visibility"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "params": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Param"
+          }
+        },
+        "throws": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Throws"
+          }
+        }
+      }
+    },
+    "Record": {
+      "type": "object",
+      "properties": {
+        "fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Field"
+          }
+        }
+      }
+    },
+    "Variant": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TypeRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "id"
+      ]
+    },
+    "Enum": {
+      "type": "object",
+      "properties": {
+        "variants": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Variant"
+          }
+        }
+      },
+      "required": [
+        "variants"
+      ]
+    },
+    "Union": {
+      "type": "object",
+      "properties": {
+        "variants": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Variant"
+          }
+        }
+      },
+      "required": [
+        "variants"
+      ]
+    },
+    "Alias": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/TypeRef"
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "Code": {
+      "description": "Field yang dimiliki setiap elemen.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Path penuh.",
+          "type": "string"
+        },
+        "parent": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Source"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "meta": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": true
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "form": {
+              "type": "string",
+              "const": "module"
+            }
+          },
+          "$ref": "#/$defs/Module",
+          "required": [
+            "form"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "form": {
+              "type": "string",
+              "const": "function"
+            }
+          },
+          "$ref": "#/$defs/Function",
+          "required": [
+            "form"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "form": {
+              "type": "string",
+              "const": "class"
+            }
+          },
+          "$ref": "#/$defs/Class",
+          "required": [
+            "form"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "form": {
+              "type": "string",
+              "const": "interface"
+            }
+          },
+          "$ref": "#/$defs/Interface",
+          "required": [
+            "form"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "form": {
+              "type": "string",
+              "const": "method"
+            }
+          },
+          "$ref": "#/$defs/Method",
+          "required": [
+            "form"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "form": {
+              "type": "string",
+              "const": "constructor"
+            }
+          },
+          "$ref": "#/$defs/Constructor",
+          "required": [
+            "form"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "form": {
+              "type": "string",
+              "const": "record"
+            }
+          },
+          "$ref": "#/$defs/Record",
+          "required": [
+            "form"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "form": {
+              "type": "string",
+              "const": "enum"
+            }
+          },
+          "$ref": "#/$defs/Enum",
+          "required": [
+            "form"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "form": {
+              "type": "string",
+              "const": "union"
+            }
+          },
+          "$ref": "#/$defs/Union",
+          "required": [
+            "form"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "form": {
+              "type": "string",
+              "const": "alias"
+            }
+          },
+          "$ref": "#/$defs/Alias",
+          "required": [
+            "form"
+          ]
+        }
+      ]
+    },
+    "Relation": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "from": {
+          "type": "string"
+        },
+        "to": {
+          "type": "string"
+        },
+        "op": {
+          "$ref": "#/$defs/Op"
+        },
+        "category": {
+          "$ref": "#/$defs/Category"
+        },
+        "label": {
+          "description": "Hanya kalau ditulis; label turunan dihitung konsumen (SPEC §9.6).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DataFlow"
+          }
+        },
+        "techs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "meta": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": true
+        }
+      },
+      "required": [
+        "id",
+        "from",
+        "to",
+        "op",
+        "category"
+      ]
+    },
+    "Op": {
+      "description": "Jenis relasi (SPEC §9.3).",
+      "type": "string",
+      "enum": [
+        "use",
+        "call",
+        "read",
+        "write",
+        "publish",
+        "subscribe",
+        "inherits",
+        "implements",
+        "owns",
+        "refers"
+      ]
+    },
+    "Category": {
+      "type": "string",
+      "enum": [
+        "interaction",
+        "structure"
+      ]
+    },
+    "DataFlow": {
+      "type": "object",
+      "properties": {
+        "dir": {
+          "$ref": "#/$defs/Dir"
+        },
+        "type": {
+          "$ref": "#/$defs/TypeRef"
+        },
+        "derived": {
+          "description": "Diambil dari kontrak endpoint, bukan ditulis di relasi (SPEC §10.8).",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "dir",
+        "type"
+      ]
+    },
+    "Dir": {
+      "description": "Arah data, dilihat dari pemulai relasi (SPEC §9.5).",
+      "type": "string",
+      "enum": [
+        "push",
+        "pull"
+      ]
+    },
+    "Flow": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "meta": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": true
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/FlowItem"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "steps"
+      ]
+    },
+    "FlowItem": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "step"
+            }
+          },
+          "$ref": "#/$defs/FlowStep",
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "opt"
+            }
+          },
+          "$ref": "#/$defs/OptBlock",
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "alt"
+            }
+          },
+          "$ref": "#/$defs/Branches",
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "par"
+            }
+          },
+          "$ref": "#/$defs/Branches",
+          "required": [
+            "kind"
+          ]
+        }
+      ]
+    },
+    "FlowStep": {
+      "type": "object",
+      "properties": {
+        "relation": {
+          "description": "Id relasi.",
+          "type": "string"
+        },
+        "number": {
+          "description": "Nomor di model penuh (SPEC §12.3), mis. `\"4a.2b.1\"`.",
+          "type": "string"
+        },
+        "note": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "relation",
+        "number"
+      ]
+    },
+    "Branch": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "letter": {
+          "type": "string"
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/FlowItem"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "letter",
+        "steps"
+      ]
+    },
+    "OptBlock": {
+      "type": "object",
+      "properties": {
+        "number": {
+          "type": "string"
+        },
+        "branch": {
+          "$ref": "#/$defs/Branch"
+        }
+      },
+      "required": [
+        "number",
+        "branch"
+      ]
+    },
+    "Branches": {
+      "type": "object",
+      "properties": {
+        "number": {
+          "type": "string"
+        },
+        "branches": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Branch"
+          }
+        }
+      },
+      "required": [
+        "number",
+        "branches"
+      ]
+    },
+    "Environment": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "meta": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": true
+        },
+        "elements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DeploymentElement"
+          }
+        },
+        "relations": {
+          "description": "Relasi infra (SPEC §13.5); `from` dan `to` adalah path di dalam environment.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Relation"
+          }
+        },
+        "omitted": {
+          "description": "Path penuh container yang di-`omit`.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ]
+    },
+    "DeploymentElement": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "node"
+            }
+          },
+          "$ref": "#/$defs/DeployNode",
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "infra"
+            }
+          },
+          "$ref": "#/$defs/Infra",
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "deploy"
+            }
+          },
+          "$ref": "#/$defs/Deploy",
+          "required": [
+            "kind"
+          ]
+        }
+      ]
+    },
+    "DeployNode": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Path di dalam environment, mis. `\"aws.cluster\"`.",
+          "type": "string"
+        },
+        "parent": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "techs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "meta": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": true
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ]
+    },
+    "InfraRole": {
+      "description": "Peran infra (SPEC §13.3).",
+      "type": "string",
+      "enum": [
+        "loadBalancer",
+        "cdn",
+        "dns",
+        "firewall",
+        "apiGateway"
+      ]
+    },
+    "Infra": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "parent": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "role": {
+          "$ref": "#/$defs/InfraRole"
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "techs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "meta": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": true
+        }
+      },
+      "required": [
+        "id",
+        "parent",
+        "name",
+        "role"
+      ]
+    },
+    "Deploy": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "parent": {
+          "type": "string"
+        },
+        "container": {
+          "description": "Path penuh container.",
+          "type": "string"
+        },
+        "replicas": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "meta": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": true
+        }
+      },
+      "required": [
+        "id",
+        "parent",
+        "container",
+        "replicas"
+      ]
+    },
+    "Spans": {
+      "type": "object",
+      "properties": {
+        "elements": {
+          "description": "Per path penuh elemen.",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/SourceSpan"
+          }
+        },
+        "relations": {
+          "description": "Per id relasi, termasuk relasi infra.",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/SourceSpan"
+          }
+        },
+        "flows": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/SourceSpan"
+          }
+        },
+        "environments": {
+          "description": "Per id environment, dan per `<environment>.<path>` untuk isinya.",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/SourceSpan"
+          }
+        },
+        "config": {
+          "description": "Per `<jenis>.<id>`, mis. `tech.postgres`; style per `style.<selector>.<nilai>`.",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/SourceSpan"
+          }
+        }
+      },
+      "required": [
+        "elements",
+        "relations",
+        "flows",
+        "environments",
+        "config"
+      ]
+    },
+    "SourceSpan": {
+      "description": "Baris dan kolom mulai dari 1; kolom dihitung per karakter.",
+      "type": "object",
+      "properties": {
+        "file": {
+          "type": "string"
+        },
+        "line": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "col": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "endLine": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "endCol": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "file",
+        "line",
+        "col",
+        "endLine",
+        "endCol"
+      ]
+    }
+  }
+}

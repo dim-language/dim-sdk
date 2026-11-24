@@ -4,6 +4,7 @@ export const memory: WebAssembly.Memory;
 export const __wbg_webmap_free: (a: number, b: number) => void;
 export const compileProject: (a: number, b: number, c: number, d: number) => [number, number, number, number];
 export const formatFile: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+export const modelSchema: () => [number, number];
 export const webmap_atZoom: (a: number, b: number, c: number, d: number) => [number, number, number, number];
 export const webmap_boxOf: (a: number, b: number, c: number) => [number, number, number, number];
 export const webmap_carry: (a: number, b: number, c: number) => [number, number, number, number];

@@ -2,7 +2,7 @@
   "name": "@dim/sdk",
   "description": "TypeScript SDK for DIM: the compiler, formatter, and zoom map from the Rust SDK, plus a web map component",
   "type": "module",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -14,7 +14,8 @@
     },
     "./map.css": "./dist/map.css",
     "./wasm": "./wasm/dim_web_bg.wasm",
-    "./vocab.json": "./wasm/vocab.json"
+    "./vocab.json": "./wasm/vocab.json",
+    "./model.schema.json": "./wasm/model.schema.json"
   },
   "devDependencies": {
     "@happy-dom/global-registrator": "^21.0.4",
