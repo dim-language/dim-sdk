@@ -8,7 +8,10 @@ import type { DimBackground, DimIcon, DimModel, DimSpan } from './model.js';
 export interface Diagnostic extends DimSpan {
 	severity: 'error';
 	code: string;
+	/** Pesan dalam bahasa Inggris. */
 	message: string;
+	/** Pesan yang sama dalam bahasa Indonesia. */
+	messageId: string;
 }
 
 export interface CompiledProject {

@@ -1,10 +1,10 @@
 {
-  "version": "0.3.0",
+  "version": "0.3.1",
   "sha256": {
     "THIRD_PARTY_NOTICES.txt": "926ea695c193c5630920c27a31c56bbafa451eee8ddefdaaea49df7cb3145e29",
     "dim_web.d.ts": "fb12cdb721c2b071eb06665128ef423aa5ca66b74afe2be473d6fb0a4f848dcf",
     "dim_web.js": "048eda9763815f56c90243445b993299779484743f672dce1806f9864e7a4095",
-    "dim_web_bg.wasm": "bd379abeb8069fdbed692f36bb92c0ddf3bfa9ef1ee5e7c1802e56fdc1066c7a",
+    "dim_web_bg.wasm": "9a3f6cade5590c12d417baf1dadb5bf1a07c69ac0951405be6df673fbebe6ac0",
     "dim_web_bg.wasm.d.ts": "c9b2ec65b575329f8a7e1316dafe0785cb3851204e58ca6f0ec0fb6873628802",
     "model.schema.json": "a49c063923423094cbb6073b38a0dd11dda365996023f9b7a90f159491329477",
     "vocab.json": "f4f4f1ed94187fbb9ac2608fab2ea15d3b29dea0f5a7a98196f49e62c69e1855"
