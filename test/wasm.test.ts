@@ -3,7 +3,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { compileProject, createMap, formatFile, initDim, modelSchema, type MapView } from '../src/index.ts';
 
 const shop = new URL('./fixtures/shop/', import.meta.url);
-// Fixture dari docs/examples/shop, dengan `class repo` diganti `rows` (`repo` keyword di SPEC §3.5).
+// Fixture dari docs/examples/shop.
 const files = Object.fromEntries(readdirSync(shop).map((name) => [name, readFileSync(new URL(name, shop), 'utf8')]));
 
 test('the compiled WASM builds the shop map view and its state changes', async () => {
@@ -28,7 +28,7 @@ test('the compiled WASM builds the shop map view and its state changes', async (
 		expect(view.flow?.title).toBe('Langkah Checkout');
 		// Cabang `alt` tetap tampil walau tinggal satu `case`, dengan judulnya sebelum langkahnya.
 		expect(view.flow?.steps.map((s) => s.number)).toEqual(['1', '2', '3', '4a', '4a.1']);
-		expect(view.flow?.steps[3]).toMatchObject({ route: null, depth: 0, meta: 'pilihan · Pembayaran berhasil' });
+		expect(view.flow?.steps[3]).toMatchObject({ route: null, depth: 0, meta: 'pilihan · Payment succeeded' });
 		expect(view.flow?.hidden).toStartWith('5 langkah tidak tampil');
 		expect(map.view(z2, 'en').flows[0].steps).toBe('9 steps');
 
@@ -84,4 +84,16 @@ test('the model schema comes from Rust', async () => {
 	const schema = modelSchema() as { title?: string; required?: string[] };
 	expect(schema.required).toContain('elements');
 	expect(JSON.stringify(schema)).toContain('"protocol"');
+});
+
+test('diagnostics are in English, with the Indonesian text in messageId', async () => {
+	await initDim();
+	const { model, diagnostics } = compileProject('main.dim', {
+		'dim.config': 'dim "0.6";',
+		'main.dim': 'dim "0.6";\nperson a "A"\n',
+	});
+	expect(model).toBeNull();
+	expect(diagnostics[0].code).toBe('E001');
+	expect(diagnostics[0].message).toContain('missing `;`');
+	expect(diagnostics[0].messageId).toContain('`;` hilang');
 });

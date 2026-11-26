@@ -2,7 +2,7 @@
   "name": "@dim/sdk",
   "description": "TypeScript SDK for DIM: the compiler, formatter, and zoom map from the Rust SDK, plus a web map component",
   "type": "module",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",

@@ -6,7 +6,7 @@ DIM (Diagram In Markup) describes software architecture as a text model you can 
 npm install @dim/sdk
 ```
 
-The packaged SDK is also available from [GitHub Releases](https://github.com/dim-language/dim-sdk/releases/tag/v0.3.0).
+The packaged SDK is also available from [GitHub Releases](https://github.com/dim-language/dim-sdk/releases/tag/v0.3.1).
 
 The SDK has two entries:
 
